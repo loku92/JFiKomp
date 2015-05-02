@@ -150,7 +150,7 @@ public class GramatykaBaseVisitor<T> extends AbstractParseTreeVisitor<T> impleme
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitIf(@NotNull GramatykaParser.IfContext ctx) { return visitChildren(ctx); }
+	@Override public T visitCond(@NotNull GramatykaParser.CondContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *

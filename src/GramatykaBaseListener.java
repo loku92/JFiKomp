@@ -244,13 +244,13 @@ public class GramatykaBaseListener implements GramatykaListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterIf(@NotNull GramatykaParser.IfContext ctx) { }
+	@Override public void enterCond(@NotNull GramatykaParser.CondContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitIf(@NotNull GramatykaParser.IfContext ctx) { }
+	@Override public void exitCond(@NotNull GramatykaParser.CondContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

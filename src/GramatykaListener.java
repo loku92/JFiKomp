@@ -222,15 +222,15 @@ public interface GramatykaListener extends ParseTreeListener {
 	 */
 	void exitIff(@NotNull GramatykaParser.IffContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link GramatykaParser#if}.
+	 * Enter a parse tree produced by {@link GramatykaParser#cond}.
 	 * @param ctx the parse tree
 	 */
-	void enterIf(@NotNull GramatykaParser.IfContext ctx);
+	void enterCond(@NotNull GramatykaParser.CondContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link GramatykaParser#if}.
+	 * Exit a parse tree produced by {@link GramatykaParser#cond}.
 	 * @param ctx the parse tree
 	 */
-	void exitIf(@NotNull GramatykaParser.IfContext ctx);
+	void exitCond(@NotNull GramatykaParser.CondContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link GramatykaParser#lt}.
 	 * @param ctx the parse tree

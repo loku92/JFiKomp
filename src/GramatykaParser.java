@@ -22,11 +22,11 @@ public class GramatykaParser extends Parser {
 	public static final int
 		RULE_prog = 0, RULE_stat = 1, RULE_expr0 = 2, RULE_expr1 = 3, RULE_expr2 = 4, 
 		RULE_value = 5, RULE_function = 6, RULE_call = 7, RULE_args = 8, RULE_restvalue = 9, 
-		RULE_inside = 10, RULE_if = 11, RULE_lt = 12, RULE_gt = 13, RULE_eq = 14, 
+		RULE_inside = 10, RULE_cond = 11, RULE_lt = 12, RULE_gt = 13, RULE_eq = 14, 
 		RULE_loop = 15;
 	public static final String[] ruleNames = {
 		"prog", "stat", "expr0", "expr1", "expr2", "value", "function", "call", 
-		"args", "restvalue", "inside", "if", "lt", "gt", "eq", "loop"
+		"args", "restvalue", "inside", "cond", "lt", "gt", "eq", "loop"
 	};
 
 	private static final String[] _LITERAL_NAMES = {
@@ -880,8 +880,8 @@ public class GramatykaParser extends Parser {
 		}
 	}
 	public static class IffContext extends InsideContext {
-		public IfContext if() {
-			return getRuleContext(IfContext.class,0);
+		public CondContext cond() {
+			return getRuleContext(CondContext.class,0);
 		}
 		public IffContext(InsideContext ctx) { copyFrom(ctx); }
 		@Override
@@ -1040,7 +1040,7 @@ public class GramatykaParser extends Parser {
 				enterOuterAlt(_localctx, 6);
 				{
 				setState(116); 
-				if();
+				cond();
 				}
 				break;
 			}
@@ -1056,7 +1056,7 @@ public class GramatykaParser extends Parser {
 		return _localctx;
 	}
 
-	public static class IfContext extends ParserRuleContext {
+	public static class CondContext extends ParserRuleContext {
 		public TerminalNode OIF() { return getToken(GramatykaParser.OIF, 0); }
 		public ValueContext value() {
 			return getRuleContext(ValueContext.class,0);
@@ -1083,28 +1083,28 @@ public class GramatykaParser extends Parser {
 		public InsideContext inside(int i) {
 			return getRuleContext(InsideContext.class,i);
 		}
-		public IfContext(ParserRuleContext parent, int invokingState) {
+		public CondContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
-		@Override public int getRuleIndex() { return RULE_if; }
+		@Override public int getRuleIndex() { return RULE_cond; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof GramatykaListener ) ((GramatykaListener)listener).enterIf(this);
+			if ( listener instanceof GramatykaListener ) ((GramatykaListener)listener).enterCond(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof GramatykaListener ) ((GramatykaListener)listener).exitIf(this);
+			if ( listener instanceof GramatykaListener ) ((GramatykaListener)listener).exitCond(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof GramatykaVisitor ) return ((GramatykaVisitor<? extends T>)visitor).visitIf(this);
+			if ( visitor instanceof GramatykaVisitor ) return ((GramatykaVisitor<? extends T>)visitor).visitCond(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	public final IfContext if() throws RecognitionException {
-		IfContext _localctx = new IfContext(_ctx, getState());
-		enterRule(_localctx, 22, RULE_if);
+	public final CondContext cond() throws RecognitionException {
+		CondContext _localctx = new CondContext(_ctx, getState());
+		enterRule(_localctx, 22, RULE_cond);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);

@@ -137,11 +137,11 @@ public interface GramatykaVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitIff(@NotNull GramatykaParser.IffContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link GramatykaParser#if}.
+	 * Visit a parse tree produced by {@link GramatykaParser#cond}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitIf(@NotNull GramatykaParser.IfContext ctx);
+	T visitCond(@NotNull GramatykaParser.CondContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link GramatykaParser#lt}.
 	 * @param ctx the parse tree
