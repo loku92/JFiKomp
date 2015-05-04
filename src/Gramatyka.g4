@@ -1,6 +1,7 @@
 grammar Gramatyka;
 
-prog: ( stat? NEWLINE  )*
+
+prog: ( stat? END )*
     ;
 
 stat: function
@@ -17,6 +18,8 @@ expr1:  expr2			      #single1
 ;
 
 expr2:   value			#valuue
+       | TOINT expr2		#toint
+       | TOREAL expr2		#toreal
        | '(' expr0 ')'		#par
 ;
 
@@ -43,6 +46,7 @@ inside:	PRINT value		#print
 	| READ ID   		#read
 	| loop              #lop
 	|cond                 #iff
+	|call               #kol
    ;
 
 cond: OIF value (lt|gt|eq) CIF (NEWLINE)* OPEN NEWLINE* inside+ NEWLINE* CLOSE
@@ -57,7 +61,7 @@ gt: '>' value
 eq: '==' value
  ;
 
-loop: 'loop('value ',' value ')' NEWLINE* OPEN NEWLINE* inside NEWLINE* CLOSE
+loop: 'loop('value ',' value ')' NEWLINE* OPEN NEWLINE* inside+ NEWLINE* CLOSE
  ;
  
 
@@ -78,6 +82,12 @@ INT:   '0'..'9'+
 
 REAL: '0'..'9'+'.''0'..'9'+
        ;
+
+TOINT: '(int)'
+    ;
+
+TOREAL: '(real)'
+    ;
 
 ADD: '+'
     ;
@@ -107,4 +117,7 @@ OPEN: '['
     ;
 
 CLOSE: ']'
+    ;
+
+END: ';'
     ;

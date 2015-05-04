@@ -72,10 +72,12 @@ public class LLVMGenerator {
         String text = "";
         text += "declare i32 @printf(i8*, ...)\n";
         text += "declare i32 @__isoc99_scanf(i8*, ...)\n";
+        text += "@.str = private unnamed_addr constant [4 x i8] c\"Abc\\00\", align 1";
         text += "@strp = constant [4 x i8] c\"%d\\0A\\00\"\n";
         text += "@strs = constant [3 x i8] c\"%d\\00\"\n";
         text += header_text;
         text += "define i32 @main() nounwind{\n";
+        text += "%1 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([4 x i8]* @.str, i32 0, i32 0))";
         text += main_text;
         text += "ret i32 0 }\n";
         return text;

@@ -7,20 +7,25 @@ import org.antlr.v4.runtime.tree.*;
 
 public class Main {
 
-    public static void main(String [] args)throws Exception{
-        ANTLRFileStream input = new ANTLRFileStream(args[0]);
+    public static void main(String [] args){
+        try {
+            ANTLRFileStream input = new ANTLRFileStream(args[0]);
 
-        GramatykaLexer lexer = new GramatykaLexer(input);
+            GramatykaLexer lexer = new GramatykaLexer(input);
 
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        GramatykaParser parser = new GramatykaParser(tokens);
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+            GramatykaParser parser = new GramatykaParser(tokens);
 
-        ParseTree tree = parser.prog();
+            ParseTree tree = parser.prog();
 
-        //System.out.println(tree.toStringTree(parser));
+            //System.out.println(tree.toStringTree(parser));
 
-        ParseTreeWalker walker = new ParseTreeWalker();
-        walker.walk(new LLVMactions(), tree);
+            ParseTreeWalker walker = new ParseTreeWalker();
+            walker.walk(new LLVMactions(), tree);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
 
     }
 
