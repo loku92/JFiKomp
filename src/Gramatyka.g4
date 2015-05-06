@@ -1,6 +1,5 @@
 grammar Gramatyka;
 
-
 prog: ( stat? END )*
     ;
 
@@ -8,13 +7,14 @@ stat: function
     | inside
    ;
 
-
 expr0:  expr1			#single0
-      | expr1 (ADD | MINUS) expr1		#add
+      | expr1 ADD expr1		#add
+      | expr1 MINUS expr1		#sub
 ;
 
 expr1:  expr2			      #single1
-      | expr2 (MULT | DIV ) expr2	#mult
+      | expr2 MULT  expr2	#mult
+      | expr2  DIV  expr2	#div
 ;
 
 expr2:   value			#valuue
@@ -23,9 +23,9 @@ expr2:   value			#valuue
        | '(' expr0 ')'		#par
 ;
 
-value: ID
-       | INT
-       | REAL
+value: ID   #id
+       | INT    #int
+       | REAL   #real
    ;
 
 function: 'function' call OPEN inside* CLOSE
@@ -40,9 +40,8 @@ args: '(' ((value | ID)(restvalue)*)* ')'
 restvalue: ','(value|ID)
 ;
 
-inside:	PRINT value		#print
-    | ID EQUALS expr0       #expression
-	| ID EQUALS value		#assign
+inside:	PRINT ID		#print
+    | ID '=' expr0       #assign
 	| READ ID   		#read
 	| loop              #lop
 	|cond                 #iff

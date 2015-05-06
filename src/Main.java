@@ -9,7 +9,7 @@ public class Main {
 
     public static void main(String [] args){
         try {
-            ANTLRFileStream input = new ANTLRFileStream(args[0]);
+            ANTLRFileStream input = new ANTLRFileStream("abc");
 
             GramatykaLexer lexer = new GramatykaLexer(input);
 

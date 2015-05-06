@@ -1,15 +1,36 @@
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.NotNull;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Stack;
 
 /**
  * Created by loku on 02.05.15.
  */
-public class LLVMactions extends GramatykaBaseListener{
+enum VarType {
+    INT, REAL, VAR
+}
 
-    HashSet<String> variables = new HashSet<String>();
-    String value;
+class Value {
+    public String name;
+    public VarType type;
+
+    public Value(String name, VarType type) {
+        this.name = name;
+        this.type = type;
+    }
+}
+
+public class LLVMactions extends GramatykaBaseListener {
+
+    HashMap<String, VarType> global = new HashMap<String, VarType>();
+    HashMap<String, VarType> local = new HashMap<String, VarType>();
+    HashSet<String> declared = new HashSet<String>();
+    Stack<Value> stack = new Stack<Value>();
+    boolean isLocal = false;
+    boolean isDeclaration = false;
+    boolean expr2 = false;
 
     @Override
     public void exitProg(@NotNull GramatykaParser.ProgContext ctx) {
@@ -18,121 +39,174 @@ public class LLVMactions extends GramatykaBaseListener{
 
     @Override
     public void exitAssign(@NotNull GramatykaParser.AssignContext ctx) {
+        String ID = ctx.ID().getText();
+        Value v = stack.pop();
+        if (v.type == VarType.INT) {
+            if (!local.containsKey(ID)) {
+                local.put(ID, v.type);
+                LLVMGenerator.declare_i32(ID);
+            }
+            LLVMGenerator.assign_i32(ID, v.name);
+        }
+        if (v.type == VarType.REAL) {
+            if (!local.containsKey(ID)) {
+                local.put(ID, v.type);
+                LLVMGenerator.declare_double(ID);
+            }
+            LLVMGenerator.assign_double(ID, v.name);
+        }
 
-    }
-
-    @Override
-    public void exitStat(@NotNull GramatykaParser.StatContext ctx) {
-        super.exitStat(ctx);
-    }
-
-    @Override
-    public void exitSingle0(@NotNull GramatykaParser.Single0Context ctx) {
-        super.exitSingle0(ctx);
     }
 
     @Override
     public void exitAdd(@NotNull GramatykaParser.AddContext ctx) {
-        super.exitAdd(ctx);
-    }
-
-    @Override
-    public void exitSingle1(@NotNull GramatykaParser.Single1Context ctx) {
-        super.exitSingle1(ctx);
+        Value v1 = stack.pop();
+        Value v2 = stack.pop();
+        if (v1.type == v2.type) {
+            if (v1.type == VarType.INT) {
+                LLVMGenerator.add_i32(v1.name, v2.name);
+                stack.push(new Value("%" + (LLVMGenerator.reg - 1), VarType.INT));
+            }
+            if (v1.type == VarType.REAL) {
+                LLVMGenerator.add_double(v1.name, v2.name);
+                stack.push(new Value("%" + (LLVMGenerator.reg - 1), VarType.REAL));
+            }
+        }
     }
 
     @Override
     public void exitMult(@NotNull GramatykaParser.MultContext ctx) {
-        super.exitMult(ctx);
+        Value v1 = stack.pop();
+        Value v2 = stack.pop();
+        if (v1.type == v2.type) {
+            if (v1.type == VarType.INT) {
+                LLVMGenerator.mult_i32(v1.name, v2.name);
+                stack.push(new Value("%" + (LLVMGenerator.reg - 1), VarType.INT));
+            }
+            if (v1.type == VarType.REAL) {
+                LLVMGenerator.mult_double(v1.name, v2.name);
+                stack.push(new Value("%" + (LLVMGenerator.reg - 1), VarType.REAL));
+            }
+        }
     }
 
     @Override
-    public void exitValuue(@NotNull GramatykaParser.ValuueContext ctx) {
-        super.exitValuue(ctx);
+    public void exitDiv(@NotNull GramatykaParser.DivContext ctx) {
+        Value v1 = stack.pop();
+        Value v2 = stack.pop();
+        if (v1.type == v2.type) {
+            if (v1.type == VarType.INT) {
+                LLVMGenerator.div_i32(v1.name, v2.name);
+                stack.push(new Value("%" + (LLVMGenerator.reg - 1), VarType.INT));
+            }
+            if (v1.type == VarType.REAL) {
+                LLVMGenerator.div_double(v1.name, v2.name);
+                stack.push(new Value("%" + (LLVMGenerator.reg - 1), VarType.REAL));
+            }
+        }
     }
 
-    @Override
-    public void exitPar(@NotNull GramatykaParser.ParContext ctx) {
-        super.exitPar(ctx);
-    }
 
     @Override
-    public void exitValue(@NotNull GramatykaParser.ValueContext ctx) {
-        super.exitValue(ctx);
-    }
-
-    @Override
-    public void exitFunction(@NotNull GramatykaParser.FunctionContext ctx) {
-        super.exitFunction(ctx);
-    }
-
-    @Override
-    public void exitCall(@NotNull GramatykaParser.CallContext ctx) {
-        super.exitCall(ctx);
-    }
-
-    @Override
-    public void exitArgs(@NotNull GramatykaParser.ArgsContext ctx) {
-        super.exitArgs(ctx);
-    }
-
-    @Override
-    public void exitRestvalue(@NotNull GramatykaParser.RestvalueContext ctx) {
-        super.exitRestvalue(ctx);
+    public void exitSub(@NotNull GramatykaParser.SubContext ctx) {
+        Value v1 = stack.pop();
+        Value v2 = stack.pop();
+        if (v1.type == v2.type) {
+            if (v1.type == VarType.INT) {
+                LLVMGenerator.sub_i32(v1.name, v2.name);
+                stack.push(new Value("%" + (LLVMGenerator.reg - 1), VarType.INT));
+            }
+            if (v1.type == VarType.REAL) {
+                LLVMGenerator.sub_double(v1.name, v2.name);
+                stack.push(new Value("%" + (LLVMGenerator.reg - 1), VarType.REAL));
+            }
+        }
     }
 
     @Override
     public void exitPrint(@NotNull GramatykaParser.PrintContext ctx) {
-        super.exitPrint(ctx);
-    }
-
-    @Override
-    public void exitExpression(@NotNull GramatykaParser.ExpressionContext ctx) {
-        super.exitExpression(ctx);
+        String ID = ctx.ID().getText();
+        VarType type = local.get(ID);
+        if (type != null) {
+            if (type == VarType.INT) {
+                LLVMGenerator.printf_i32(ID);
+            }
+            if (type == VarType.REAL) {
+                LLVMGenerator.printf_double(ID);
+            }
+        }
     }
 
     @Override
     public void exitRead(@NotNull GramatykaParser.ReadContext ctx) {
-        super.exitRead(ctx);
+        String ID = ctx.ID().getText();
+        if(!local.containsKey(ID)){
+            local.put(ID, VarType.INT);
+            LLVMGenerator.declare_i32(ID);
+        }
+        LLVMGenerator.scanf_i32(ID);
+
+    }
+
+
+    @Override
+    public void exitToint(@NotNull GramatykaParser.TointContext ctx) {
+        Value v = stack.pop();
+        LLVMGenerator.toInt(v.name);
+        stack.push(new Value("%" + (LLVMGenerator.reg - 1), VarType.INT));
     }
 
     @Override
-    public void exitLop(@NotNull GramatykaParser.LopContext ctx) {
-        super.exitLop(ctx);
+    public void exitToreal(@NotNull GramatykaParser.TorealContext ctx) {
+        Value v = stack.pop();
+        LLVMGenerator.toDouble(v.name);
+        stack.push(new Value("%" + (LLVMGenerator.reg - 1), VarType.REAL));
     }
 
     @Override
-    public void exitIff(@NotNull GramatykaParser.IffContext ctx) {
-        super.exitIff(ctx);
+    public void exitInt(@NotNull GramatykaParser.IntContext ctx) {
+        stack.push(new Value(ctx.INT().getText(), VarType.INT));
     }
 
     @Override
-    public void exitCond(@NotNull GramatykaParser.CondContext ctx) {
-        super.exitCond(ctx);
+    public void exitReal(@NotNull GramatykaParser.RealContext ctx) {
+        stack.push(new Value(ctx.REAL().getText(), VarType.REAL));
     }
 
     @Override
-    public void exitLt(@NotNull GramatykaParser.LtContext ctx) {
-        super.exitLt(ctx);
+    public void exitId(@NotNull GramatykaParser.IdContext ctx) {
+        if (expr2) {
+            VarType t = local.get(ctx.ID().getText());
+            if(t == VarType.INT) {
+                LLVMGenerator.load_i32(ctx.ID().getText());
+                stack.push(new Value("%" + (LLVMGenerator.reg - 1), VarType.INT));
+            }
+            else if(t == VarType.REAL) {
+                LLVMGenerator.load_double(ctx.ID().getText());
+                stack.push(new Value("%" + (LLVMGenerator.reg - 1), VarType.REAL));
+            }
+        }
     }
 
     @Override
-    public void exitGt(@NotNull GramatykaParser.GtContext ctx) {
-        super.exitGt(ctx);
+    public void enterFunction(@NotNull GramatykaParser.FunctionContext ctx) {
+        isLocal = true;
+        isDeclaration = true;
     }
 
     @Override
-    public void exitEq(@NotNull GramatykaParser.EqContext ctx) {
-        super.exitEq(ctx);
+    public void exitFunction(@NotNull GramatykaParser.FunctionContext ctx) {
+        isDeclaration = false;
+        isLocal = false;
     }
 
     @Override
-    public void exitLoop(@NotNull GramatykaParser.LoopContext ctx) {
-        super.exitLoop(ctx);
+    public void enterSingle1(@NotNull GramatykaParser.Single1Context ctx) {
+        expr2 = true;
     }
 
     @Override
-    public void exitEveryRule(@NotNull ParserRuleContext ctx) {
-        super.exitEveryRule(ctx);
+    public void exitSingle1(@NotNull GramatykaParser.Single1Context ctx) {
+        expr2 = false;
     }
 }
