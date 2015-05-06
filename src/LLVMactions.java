@@ -1,15 +1,13 @@
-import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Stack;
 
 /**
  * Created by loku on 02.05.15.
  */
 enum VarType {
-    INT, REAL, VAR
+    INT, REAL
 }
 
 class Value {
@@ -26,11 +24,12 @@ public class LLVMactions extends GramatykaBaseListener {
 
     HashMap<String, VarType> global = new HashMap<String, VarType>();
     HashMap<String, VarType> local = new HashMap<String, VarType>();
-    HashSet<String> declared = new HashSet<String>();
     Stack<Value> stack = new Stack<Value>();
     boolean isLocal = false;
     boolean isDeclaration = false;
     boolean expr2 = false;
+    boolean iff = false;
+    boolean loop = false;
 
     @Override
     public void exitProg(@NotNull GramatykaParser.ProgContext ctx) {
@@ -198,6 +197,58 @@ public class LLVMactions extends GramatykaBaseListener {
     public void exitFunction(@NotNull GramatykaParser.FunctionContext ctx) {
         isDeclaration = false;
         isLocal = false;
+    }
+
+    @Override
+    public void enterCond(@NotNull GramatykaParser.CondContext ctx) {
+        iff = true;
+
+    }
+
+    @Override
+    public void exitCond(@NotNull GramatykaParser.CondContext ctx) {
+        iff = false;
+    }
+
+
+    @Override
+    public void enterInif(@NotNull GramatykaParser.InifContext ctx) {
+        LLVMGenerator.ifBegin();
+
+    }
+
+    @Override
+    public void exitInif(@NotNull GramatykaParser.InifContext ctx) {
+        LLVMGenerator.ifEnd();
+    }
+
+
+
+    @Override
+    public void exitLt(@NotNull GramatykaParser.LtContext ctx) {
+        String ID = ctx.ID().getText();
+        String INT = ctx.INT().getText();
+        if( local.containsKey(ID) ) {
+            LLVMGenerator.gt(ID, INT);
+        }
+    }
+
+    @Override
+    public void exitGt(@NotNull GramatykaParser.GtContext ctx) {
+        String ID = ctx.ID().getText();
+        String INT = ctx.INT().getText();
+        if( local.containsKey(ID) ) {
+            LLVMGenerator.lt(ID, INT);
+        }
+    }
+
+    @Override
+    public void exitEq(@NotNull GramatykaParser.EqContext ctx) {
+        String ID = ctx.ID().getText();
+        String INT = ctx.INT().getText();
+        if( local.containsKey(ID) ) {
+            LLVMGenerator.eq(ID, INT);
+        }
     }
 
     @Override

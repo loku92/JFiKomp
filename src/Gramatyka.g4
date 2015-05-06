@@ -3,8 +3,8 @@ grammar Gramatyka;
 prog: ( stat? END )*
     ;
 
-stat: function
-    | inside
+stat: function #foo
+    | inside    #operation
    ;
 
 expr0:  expr1			#single0
@@ -28,7 +28,7 @@ value: ID   #id
        | REAL   #real
    ;
 
-function: 'function' call OPEN inside* CLOSE
+function: 'function' call OPEN inside+ CLOSE
 ;
 
 call: ID args
@@ -40,6 +40,9 @@ args: '(' ((value | ID)(restvalue)*)* ')'
 restvalue: ','(value|ID)
 ;
 
+inif:(inside)+
+;
+
 inside:	PRINT ID		#print
     | ID '=' expr0       #assign
 	| READ ID   		#read
@@ -48,16 +51,16 @@ inside:	PRINT ID		#print
 	|call               #kol
    ;
 
-cond: OIF value (lt|gt|eq) CIF (NEWLINE)* OPEN NEWLINE* inside+ NEWLINE* CLOSE
+cond: OIF (lt|gt|eq) CIF (NEWLINE)* OPEN NEWLINE* inif NEWLINE* CLOSE
 ;
 
-lt: '<' value
+lt: ID '<' INT
  ;
  
-gt: '>' value
+gt: ID '>' INT
      ;
      
-eq: '==' value
+eq: ID '==' INT
  ;
 
 loop: 'loop('value ',' value ')' NEWLINE* OPEN NEWLINE* inside+ NEWLINE* CLOSE

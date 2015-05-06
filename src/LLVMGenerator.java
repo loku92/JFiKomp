@@ -8,6 +8,9 @@ public class LLVMGenerator {
     static String header_text = "";
     static String main_text = "";
     static int reg = 1;
+    static int ifNo = 0;
+
+    static Stack<Integer> brstack = new Stack<Integer>();
 
     static void printf_i32(String id){
         main_text += "%"+ reg +" = load i32* %"+id+"\n";
@@ -106,6 +109,40 @@ public class LLVMGenerator {
 
     static void toInt(String id){
         main_text += "%"+reg+" = fptosi double "+id+" to i32\n";
+        reg++;
+    }
+
+    static void ifBegin(){
+        ifNo++;
+        main_text += "br i1 %"+(reg-1)+", label %ok"+ ifNo +", label %fail"+ ifNo +"\n";
+        main_text += "ok"+ ifNo +":\n";
+        brstack.push(ifNo);
+    }
+
+    static void ifEnd(){
+        int b = brstack.pop();
+        main_text += "br label %fail"+b+"\n";
+        main_text += "fail"+b+":\n";
+    }
+
+    static void eq(String id, String value){
+        main_text += "%"+reg+" = load i32* %"+id+"\n";
+        reg++;
+        main_text += "%"+reg+" = icmp eq i32 %"+(reg-1)+", "+value+"\n";
+        reg++;
+    }
+
+    static void gt(String id, String value){
+        main_text += "%"+reg+" = load i32* %"+id+"\n";
+        reg++;
+        main_text += "%"+reg+" = icmp slt i32 %"+(reg-1)+", "+value+"\n";
+        reg++;
+    }
+
+    static void lt(String id, String value){
+        main_text += "%"+reg+" = load i32* %"+id+"\n";
+        reg++;
+        main_text += "%"+reg+" = icmp sgt i32 %"+(reg-1)+", "+value+"\n";
         reg++;
     }
 

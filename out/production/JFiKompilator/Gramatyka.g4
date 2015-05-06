@@ -1,31 +1,34 @@
 grammar Gramatyka;
 
-prog: ( stat? NEWLINE  )*
+prog: ( stat? END )*
     ;
 
-stat: function
-    | inside
+stat: function #foo
+    | inside    #operation
    ;
 
-
 expr0:  expr1			#single0
-      | expr1 (ADD | MINUS) expr1		#add
+      | expr1 ADD expr1		#add
+      | expr1 MINUS expr1		#sub
 ;
 
 expr1:  expr2			      #single1
-      | expr2 (MULT | DIV ) expr2	#mult
+      | expr2 MULT  expr2	#mult
+      | expr2  DIV  expr2	#div
 ;
 
 expr2:   value			#valuue
+       | TOINT expr2		#toint
+       | TOREAL expr2		#toreal
        | '(' expr0 ')'		#par
 ;
 
-value: ID
-       | INT
-       | REAL
+value: ID   #id
+       | INT    #int
+       | REAL   #real
    ;
 
-function: 'function' call OPEN inside* CLOSE
+function: 'function' call OPEN inside+ CLOSE
 ;
 
 call: ID args
@@ -37,27 +40,30 @@ args: '(' ((value | ID)(restvalue)*)* ')'
 restvalue: ','(value|ID)
 ;
 
-inside:	PRINT value		#print
-    | ID EQUALS expr0       #expression
-	| ID EQUALS value		#assign
+inif:(inside)+
+;
+
+inside:	PRINT ID		#print
+    | ID '=' expr0       #assign
 	| READ ID   		#read
 	| loop              #lop
 	|cond                 #iff
+	|call               #kol
    ;
 
-cond: OIF value (lt|gt|eq) CIF (NEWLINE)* OPEN NEWLINE* inside+ NEWLINE* CLOSE
+cond: OIF (lt|gt|eq) CIF (NEWLINE)* OPEN NEWLINE* inif NEWLINE* CLOSE
 ;
 
-lt: '<' value
+lt: ID '<' INT
  ;
  
-gt: '>' value
+gt: ID '>' INT
      ;
      
-eq: '==' value
+eq: ID '==' INT
  ;
 
-loop: 'loop('value ',' value ')' NEWLINE* OPEN NEWLINE* inside NEWLINE* CLOSE
+loop: 'loop('value ',' value ')' NEWLINE* OPEN NEWLINE* inside+ NEWLINE* CLOSE
  ;
  
 
@@ -78,6 +84,12 @@ INT:   '0'..'9'+
 
 REAL: '0'..'9'+'.''0'..'9'+
        ;
+
+TOINT: '(int)'
+    ;
+
+TOREAL: '(real)'
+    ;
 
 ADD: '+'
     ;
@@ -107,4 +119,7 @@ OPEN: '['
     ;
 
 CLOSE: ']'
+    ;
+
+END: ';'
     ;
