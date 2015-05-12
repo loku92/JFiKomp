@@ -20,20 +20,20 @@ class Value {
     }
 }
 
-public class LLVMactions extends GramatykaBaseListener {
+public class ActionImplementer extends GramatykaBaseListener {
 
     HashMap<String, VarType> global = new HashMap<String, VarType>();
     HashMap<String, VarType> local = new HashMap<String, VarType>();
     Stack<Value> stack = new Stack<Value>();
     boolean isLocal = false;
     boolean isDeclaration = false;
-    boolean expr2 = false;
+    boolean expr = false;
     boolean iff = false;
     boolean loop = false;
 
     @Override
     public void exitProg(@NotNull GramatykaParser.ProgContext ctx) {
-        System.out.println(LLVMGenerator.generate());
+        System.out.println(ByteCodeGenerator.generate());
     }
 
     @Override
@@ -43,16 +43,16 @@ public class LLVMactions extends GramatykaBaseListener {
         if (v.type == VarType.INT) {
             if (!local.containsKey(ID)) {
                 local.put(ID, v.type);
-                LLVMGenerator.declare_i32(ID);
+                ByteCodeGenerator.declare_i32(ID);
             }
-            LLVMGenerator.assign_i32(ID, v.name);
+            ByteCodeGenerator.assign_i32(ID, v.name);
         }
         if (v.type == VarType.REAL) {
             if (!local.containsKey(ID)) {
                 local.put(ID, v.type);
-                LLVMGenerator.declare_double(ID);
+                ByteCodeGenerator.declare_double(ID);
             }
-            LLVMGenerator.assign_double(ID, v.name);
+            ByteCodeGenerator.assign_double(ID, v.name);
         }
 
     }
@@ -63,14 +63,15 @@ public class LLVMactions extends GramatykaBaseListener {
         Value v2 = stack.pop();
         if (v1.type == v2.type) {
             if (v1.type == VarType.INT) {
-                LLVMGenerator.add_i32(v1.name, v2.name);
-                stack.push(new Value("%" + (LLVMGenerator.reg - 1), VarType.INT));
+                ByteCodeGenerator.add_i32(v1.name, v2.name);
+                stack.push(new Value("%" + (ByteCodeGenerator.reg - 1), VarType.INT));
             }
             if (v1.type == VarType.REAL) {
-                LLVMGenerator.add_double(v1.name, v2.name);
-                stack.push(new Value("%" + (LLVMGenerator.reg - 1), VarType.REAL));
+                ByteCodeGenerator.add_double(v1.name, v2.name);
+                stack.push(new Value("%" + (ByteCodeGenerator.reg - 1), VarType.REAL));
             }
         }
+        expr = false;
     }
 
     @Override
@@ -79,14 +80,15 @@ public class LLVMactions extends GramatykaBaseListener {
         Value v2 = stack.pop();
         if (v1.type == v2.type) {
             if (v1.type == VarType.INT) {
-                LLVMGenerator.mult_i32(v1.name, v2.name);
-                stack.push(new Value("%" + (LLVMGenerator.reg - 1), VarType.INT));
+                ByteCodeGenerator.mult_i32(v1.name, v2.name);
+                stack.push(new Value("%" + (ByteCodeGenerator.reg - 1), VarType.INT));
             }
             if (v1.type == VarType.REAL) {
-                LLVMGenerator.mult_double(v1.name, v2.name);
-                stack.push(new Value("%" + (LLVMGenerator.reg - 1), VarType.REAL));
+                ByteCodeGenerator.mult_double(v1.name, v2.name);
+                stack.push(new Value("%" + (ByteCodeGenerator.reg - 1), VarType.REAL));
             }
         }
+        expr = false;
     }
 
     @Override
@@ -95,14 +97,15 @@ public class LLVMactions extends GramatykaBaseListener {
         Value v2 = stack.pop();
         if (v1.type == v2.type) {
             if (v1.type == VarType.INT) {
-                LLVMGenerator.div_i32(v1.name, v2.name);
-                stack.push(new Value("%" + (LLVMGenerator.reg - 1), VarType.INT));
+                ByteCodeGenerator.div_i32(v1.name, v2.name);
+                stack.push(new Value("%" + (ByteCodeGenerator.reg - 1), VarType.INT));
             }
             if (v1.type == VarType.REAL) {
-                LLVMGenerator.div_double(v1.name, v2.name);
-                stack.push(new Value("%" + (LLVMGenerator.reg - 1), VarType.REAL));
+                ByteCodeGenerator.div_double(v1.name, v2.name);
+                stack.push(new Value("%" + (ByteCodeGenerator.reg - 1), VarType.REAL));
             }
         }
+        expr = false;
     }
 
 
@@ -112,14 +115,15 @@ public class LLVMactions extends GramatykaBaseListener {
         Value v2 = stack.pop();
         if (v1.type == v2.type) {
             if (v1.type == VarType.INT) {
-                LLVMGenerator.sub_i32(v1.name, v2.name);
-                stack.push(new Value("%" + (LLVMGenerator.reg - 1), VarType.INT));
+                ByteCodeGenerator.sub_i32(v1.name, v2.name);
+                stack.push(new Value("%" + (ByteCodeGenerator.reg - 1), VarType.INT));
             }
             if (v1.type == VarType.REAL) {
-                LLVMGenerator.sub_double(v1.name, v2.name);
-                stack.push(new Value("%" + (LLVMGenerator.reg - 1), VarType.REAL));
+                ByteCodeGenerator.sub_double(v1.name, v2.name);
+                stack.push(new Value("%" + (ByteCodeGenerator.reg - 1), VarType.REAL));
             }
         }
+        expr = false;
     }
 
     @Override
@@ -128,10 +132,10 @@ public class LLVMactions extends GramatykaBaseListener {
         VarType type = local.get(ID);
         if (type != null) {
             if (type == VarType.INT) {
-                LLVMGenerator.printf_i32(ID);
+                ByteCodeGenerator.printf_i32(ID);
             }
             if (type == VarType.REAL) {
-                LLVMGenerator.printf_double(ID);
+                ByteCodeGenerator.printf_double(ID);
             }
         }
     }
@@ -141,9 +145,9 @@ public class LLVMactions extends GramatykaBaseListener {
         String ID = ctx.ID().getText();
         if(!local.containsKey(ID)){
             local.put(ID, VarType.INT);
-            LLVMGenerator.declare_i32(ID);
+            ByteCodeGenerator.declare_i32(ID);
         }
-        LLVMGenerator.scanf_i32(ID);
+        ByteCodeGenerator.scanf_i32(ID);
 
     }
 
@@ -151,15 +155,17 @@ public class LLVMactions extends GramatykaBaseListener {
     @Override
     public void exitToint(@NotNull GramatykaParser.TointContext ctx) {
         Value v = stack.pop();
-        LLVMGenerator.toInt(v.name);
-        stack.push(new Value("%" + (LLVMGenerator.reg - 1), VarType.INT));
+        ByteCodeGenerator.toInt(v.name);
+        stack.push(new Value("%" + (ByteCodeGenerator.reg - 1), VarType.INT));
+        expr = false;
     }
 
     @Override
     public void exitToreal(@NotNull GramatykaParser.TorealContext ctx) {
         Value v = stack.pop();
-        LLVMGenerator.toDouble(v.name);
-        stack.push(new Value("%" + (LLVMGenerator.reg - 1), VarType.REAL));
+        ByteCodeGenerator.toDouble(v.name);
+        stack.push(new Value("%" + (ByteCodeGenerator.reg - 1), VarType.REAL));
+        expr = false;
     }
 
     @Override
@@ -174,15 +180,15 @@ public class LLVMactions extends GramatykaBaseListener {
 
     @Override
     public void exitId(@NotNull GramatykaParser.IdContext ctx) {
-        if (expr2) {
+        if (expr) {
             VarType t = local.get(ctx.ID().getText());
             if(t == VarType.INT) {
-                LLVMGenerator.load_i32(ctx.ID().getText());
-                stack.push(new Value("%" + (LLVMGenerator.reg - 1), VarType.INT));
+                ByteCodeGenerator.load_i32(ctx.ID().getText());
+                stack.push(new Value("%" + (ByteCodeGenerator.reg - 1), VarType.INT));
             }
             else if(t == VarType.REAL) {
-                LLVMGenerator.load_double(ctx.ID().getText());
-                stack.push(new Value("%" + (LLVMGenerator.reg - 1), VarType.REAL));
+                ByteCodeGenerator.load_double(ctx.ID().getText());
+                stack.push(new Value("%" + (ByteCodeGenerator.reg - 1), VarType.REAL));
             }
         }
     }
@@ -213,13 +219,13 @@ public class LLVMactions extends GramatykaBaseListener {
 
     @Override
     public void enterInif(@NotNull GramatykaParser.InifContext ctx) {
-        LLVMGenerator.ifBegin();
+        ByteCodeGenerator.ifBegin();
 
     }
 
     @Override
     public void exitInif(@NotNull GramatykaParser.InifContext ctx) {
-        LLVMGenerator.ifEnd();
+        ByteCodeGenerator.ifEnd();
     }
 
 
@@ -229,7 +235,7 @@ public class LLVMactions extends GramatykaBaseListener {
         String ID = ctx.ID().getText();
         String INT = ctx.INT().getText();
         if( local.containsKey(ID) ) {
-            LLVMGenerator.gt(ID, INT);
+            ByteCodeGenerator.gt(ID, INT);
         }
     }
 
@@ -238,7 +244,7 @@ public class LLVMactions extends GramatykaBaseListener {
         String ID = ctx.ID().getText();
         String INT = ctx.INT().getText();
         if( local.containsKey(ID) ) {
-            LLVMGenerator.lt(ID, INT);
+            ByteCodeGenerator.lt(ID, INT);
         }
     }
 
@@ -247,17 +253,66 @@ public class LLVMactions extends GramatykaBaseListener {
         String ID = ctx.ID().getText();
         String INT = ctx.INT().getText();
         if( local.containsKey(ID) ) {
-            LLVMGenerator.eq(ID, INT);
+            ByteCodeGenerator.eq(ID, INT);
         }
     }
 
     @Override
-    public void enterSingle1(@NotNull GramatykaParser.Single1Context ctx) {
-        expr2 = true;
+    public void enterMult(@NotNull GramatykaParser.MultContext ctx) {
+        expr = true;
     }
 
     @Override
-    public void exitSingle1(@NotNull GramatykaParser.Single1Context ctx) {
-        expr2 = false;
+    public void enterPar(@NotNull GramatykaParser.ParContext ctx) {
+        expr = true;
+        super.enterPar(ctx);
+    }
+
+    @Override
+    public void enterSub(@NotNull GramatykaParser.SubContext ctx) {
+        expr = true;
+        super.enterSub(ctx);
+    }
+
+    @Override
+    public void enterValuue(@NotNull GramatykaParser.ValuueContext ctx) {
+        super.enterValuue(ctx);
+        expr = true;
+    }
+
+    @Override
+    public void enterToreal(@NotNull GramatykaParser.TorealContext ctx) {
+        expr = true;
+        super.enterToreal(ctx);
+    }
+
+    @Override
+    public void enterToint(@NotNull GramatykaParser.TointContext ctx) {
+        expr = true;
+        super.enterToint(ctx);
+    }
+
+    @Override
+    public void enterDiv(@NotNull GramatykaParser.DivContext ctx) {
+        expr = true;
+        super.enterDiv(ctx);
+    }
+
+    @Override
+    public void enterAdd(@NotNull GramatykaParser.AddContext ctx) {
+        super.enterAdd(ctx);
+        expr = true;
+    }
+
+    @Override
+    public void exitValuue(@NotNull GramatykaParser.ValuueContext ctx) {
+        expr = false;
+        super.exitValuue(ctx);
+    }
+
+    @Override
+    public void exitPar(@NotNull GramatykaParser.ParContext ctx) {
+        expr = false;
+        super.exitPar(ctx);
     }
 }

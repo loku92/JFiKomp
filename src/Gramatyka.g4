@@ -1,26 +1,23 @@
 grammar Gramatyka;
 
-prog: ( stat? END )*
+prog: ( stat? END comment?  )*
     ;
 
-stat: function #foo
-    | inside    #operation
+stat: function comment? #foo
+    | inside   comment? #operation
    ;
 
-expr0:  expr1			#single0
-      | expr1 ADD expr1		#add
-      | expr1 MINUS expr1		#sub
+expr:   expr ADD expr		#add
+      | expr MINUS expr		#sub
+      | expr MULT  expr	    #mult
+      | expr  DIV  expr	    #div
+      | value               #valuue
+      | TOINT expr	        #toint
+      | TOREAL expr		    #toreal
+      | '(' expr ')'		#par
 ;
 
-expr1:  expr2			      #single1
-      | expr2 MULT  expr2	#mult
-      | expr2  DIV  expr2	#div
-;
-
-expr2:   value			#valuue
-       | TOINT expr2		#toint
-       | TOREAL expr2		#toreal
-       | '(' expr0 ')'		#par
+comment: '#'(value|'-'|'+'|'*'|'/'|'#'|'$')*
 ;
 
 value: ID   #id
@@ -28,7 +25,7 @@ value: ID   #id
        | REAL   #real
    ;
 
-function: 'function' call OPEN inside+ CLOSE
+function: 'function' call OPEN (inside comment?| comment )+ CLOSE
 ;
 
 call: ID args
@@ -40,11 +37,11 @@ args: '(' ((value | ID)(restvalue)*)* ')'
 restvalue: ','(value|ID)
 ;
 
-inif:(inside)+
+inif:(inside comment?| comment )+
 ;
 
 inside:	PRINT ID		#print
-    | ID '=' expr0       #assign
+    | ID '=' expr       #assign
 	| READ ID   		#read
 	| loop              #lop
 	|cond                 #iff
@@ -63,7 +60,7 @@ gt: ID '>' INT
 eq: ID '==' INT
  ;
 
-loop: 'loop('value ',' value ')' NEWLINE* OPEN NEWLINE* inside+ NEWLINE* CLOSE
+loop: 'loop('value ',' value ')' NEWLINE* OPEN NEWLINE* (inside comment?| comment )+ NEWLINE* CLOSE
  ;
  
 

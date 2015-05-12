@@ -21,7 +21,7 @@ public class Main {
             //System.out.println(tree.toStringTree(parser));
 
             ParseTreeWalker walker = new ParseTreeWalker();
-            walker.walk(new LLVMactions(), tree);
+            walker.walk(new ActionImplementer(), tree);
         }
         catch (Exception e){
             e.printStackTrace();

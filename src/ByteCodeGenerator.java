@@ -3,7 +3,7 @@ import java.util.Stack;
 /**
  * Created by loku on 02.05.15.
  */
-public class LLVMGenerator {
+public class ByteCodeGenerator {
 
     static String header_text = "";
     static String main_text = "";
