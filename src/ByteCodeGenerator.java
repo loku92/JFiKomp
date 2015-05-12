@@ -1,3 +1,6 @@
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.Stack;
 
 /**
@@ -159,6 +162,16 @@ public class ByteCodeGenerator {
         text += "define i32 @main() nounwind{\n";
         text += main_text;
         text += "ret i32 0 }\n";
+        File f = new File(Main.fileName);
+        try {
+            PrintWriter pw = new PrintWriter(f);
+            pw.println(text);
+            pw.close();
+        }
+        catch (FileNotFoundException e){
+            System.err.println("Failed to create a file.");
+        }
+
         return text;
     }
 }
