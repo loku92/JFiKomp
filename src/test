@@ -1,9 +1,12 @@
 function aaa()[
+	zds=2
+	f=1.0
 	print zds
-	<< a > 1 >>[
+	<< zds > 1 >>[
 	    print f
 	]
 ];
+a=2
 << a > 1 >>[
 	read z
  	z = 2
@@ -13,8 +16,9 @@ function aaa()[
 aaa();
 read bbb;
  
-loop(2,4)
+loop(4)
 [
+	x=2
     print x
     z = (2 + 1) * 2 
     aaa()

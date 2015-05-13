@@ -61,7 +61,7 @@ gt: ID '>' INT
 eq: ID '==' INT
  ;
 
-loop: 'loop('value ',' value ')' NEWLINE* OPEN NEWLINE* (inside comment?| comment )+ NEWLINE* CLOSE
+loop: 'loop(' value ')' NEWLINE* OPEN NEWLINE* (inside comment?| comment )+ NEWLINE* CLOSE
  ;
  
 

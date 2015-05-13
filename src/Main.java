@@ -10,12 +10,13 @@ public class Main {
 
     public static void main(String [] args){
         try {
+            ANTLRFileStream input;
             if(args.length<1) {
                 fileName = "result.ll";
-                ANTLRFileStream input = new ANTLRFileStream("abc");
+                input = new ANTLRFileStream("abc");
             }else{
                 fileName = args[0] + ".ll";
-                ANTLRFileStream input = new ANTLRFileStream(args[0]);
+                input = new ANTLRFileStream(args[0]);
             }
 
             GramatykaLexer lexer = new GramatykaLexer(input);
