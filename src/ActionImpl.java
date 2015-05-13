@@ -20,7 +20,7 @@ class Value {
     }
 }
 
-public class ActionImplementer extends GramatykaBaseListener {
+public class ActionImpl extends GramatykaBaseListener  {
 
     HashMap<String, VarType> global = new HashMap<String, VarType>();
     HashMap<String, VarType> local = new HashMap<String, VarType>();
@@ -47,12 +47,15 @@ public class ActionImplementer extends GramatykaBaseListener {
             }
             ByteCodeGenerator.assign_i32(ID, v.name);
         }
-        if (v.type == VarType.REAL) {
+        else if (v.type == VarType.REAL) {
             if (!local.containsKey(ID)) {
                 local.put(ID, v.type);
                 ByteCodeGenerator.declare_double(ID);
             }
             ByteCodeGenerator.assign_double(ID, v.name);
+        }
+        else{
+            raiseError(String.valueOf(ctx.getStart().getLine()));
         }
 
     }
@@ -71,6 +74,9 @@ public class ActionImplementer extends GramatykaBaseListener {
                 stack.push(new Value("%" + (ByteCodeGenerator.reg - 1), VarType.REAL));
             }
         }
+        else{
+            raiseError(String.valueOf(ctx.getStart().getLine()) + " Adding undeclared value.");
+        }
         expr = false;
     }
 
@@ -88,6 +94,9 @@ public class ActionImplementer extends GramatykaBaseListener {
                 stack.push(new Value("%" + (ByteCodeGenerator.reg - 1), VarType.REAL));
             }
         }
+        else{
+            raiseError(String.valueOf(ctx.getStart().getLine())+ " Mult undeclared value.");
+        }
         expr = false;
     }
 
@@ -104,6 +113,9 @@ public class ActionImplementer extends GramatykaBaseListener {
                 ByteCodeGenerator.div_double(v1.name, v2.name);
                 stack.push(new Value("%" + (ByteCodeGenerator.reg - 1), VarType.REAL));
             }
+        }
+        else{
+            raiseError(String.valueOf(ctx.getStart().getLine())+ " Div undeclared value.");
         }
         expr = false;
     }
@@ -123,6 +135,9 @@ public class ActionImplementer extends GramatykaBaseListener {
                 stack.push(new Value("%" + (ByteCodeGenerator.reg - 1), VarType.REAL));
             }
         }
+        else{
+            raiseError(String.valueOf(ctx.getStart().getLine()) + " Sub undeclared value.");
+        }
         expr = false;
     }
 
@@ -138,6 +153,9 @@ public class ActionImplementer extends GramatykaBaseListener {
                 ByteCodeGenerator.printf_double(ID);
             }
         }
+        else{
+            raiseError(String.valueOf(ctx.getStart().getLine()) + " Print undeclared value.");
+        }
     }
 
     @Override
@@ -151,6 +169,15 @@ public class ActionImplementer extends GramatykaBaseListener {
 
     }
 
+    @Override
+    public void enterReadReal(@NotNull GramatykaParser.ReadRealContext ctx) {
+        String ID = ctx.ID().getText();
+        if(!local.containsKey(ID)){
+            local.put(ID, VarType.REAL);
+            ByteCodeGenerator.declare_double(ID);
+        }
+        ByteCodeGenerator.scanf_double(ID);
+    }
 
     @Override
     public void exitToint(@NotNull GramatykaParser.TointContext ctx) {
@@ -237,6 +264,9 @@ public class ActionImplementer extends GramatykaBaseListener {
         if( local.containsKey(ID) ) {
             ByteCodeGenerator.gt(ID, INT);
         }
+        else{
+            raiseError(String.valueOf(ctx.getStart().getLine()) + " Using undeclared value.");
+        }
     }
 
     @Override
@@ -246,6 +276,9 @@ public class ActionImplementer extends GramatykaBaseListener {
         if( local.containsKey(ID) ) {
             ByteCodeGenerator.lt(ID, INT);
         }
+        else{
+            raiseError(String.valueOf(ctx.getStart().getLine())+ " Using undeclared value.");
+        }
     }
 
     @Override
@@ -254,6 +287,9 @@ public class ActionImplementer extends GramatykaBaseListener {
         String INT = ctx.INT().getText();
         if( local.containsKey(ID) ) {
             ByteCodeGenerator.eq(ID, INT);
+        }
+        else{
+            raiseError(String.valueOf(ctx.getStart().getLine())+ " Using undeclared value.");
         }
     }
 
@@ -314,5 +350,9 @@ public class ActionImplementer extends GramatykaBaseListener {
     public void exitPar(@NotNull GramatykaParser.ParContext ctx) {
         expr = false;
         super.exitPar(ctx);
+    }
+
+    public void raiseError(String text){
+        System.err.println("Error in line:" + text);
     }
 }

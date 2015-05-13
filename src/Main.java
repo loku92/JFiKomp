@@ -10,8 +10,13 @@ public class Main {
 
     public static void main(String [] args){
         try {
-            fileName = "result.ll";
-            ANTLRFileStream input = new ANTLRFileStream("abc");
+            if(args.length<1) {
+                fileName = "result.ll";
+                ANTLRFileStream input = new ANTLRFileStream("abc");
+            }else{
+                fileName = args[0] + ".ll";
+                ANTLRFileStream input = new ANTLRFileStream(args[0]);
+            }
 
             GramatykaLexer lexer = new GramatykaLexer(input);
 
@@ -21,12 +26,10 @@ public class Main {
             ParseTree tree = parser.prog();
             ParseTreeWalker walker = new ParseTreeWalker();
 
-            walker.walk(new ActionImplementer(), tree);
+            walker.walk(new ActionImpl(), tree);
         }
-        catch (Exception e){
-            e.printStackTrace();
+        catch (Exception e1){
+            e1.printStackTrace();
         }
-
     }
-
 }
