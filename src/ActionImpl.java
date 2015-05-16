@@ -197,7 +197,9 @@ public class ActionImpl extends GramatykaBaseListener  {
 
     @Override
     public void exitInt(@NotNull GramatykaParser.IntContext ctx) {
-        stack.push(new Value(ctx.INT().getText(), VarType.INT));
+
+            stack.push(new Value(ctx.INT().getText(), VarType.INT));
+
     }
 
     @Override
@@ -233,6 +235,31 @@ public class ActionImpl extends GramatykaBaseListener  {
     }
 
     @Override
+    public void exitCondint(@NotNull GramatykaParser.CondintContext ctx) {
+        ByteCodeGenerator.loopBegin(ctx.INT().getText());
+    }
+
+    @Override
+    public void exitCondvalue(@NotNull GramatykaParser.CondvalueContext ctx) {
+        if(local.containsKey(ctx.ID().getText())) {
+            if(local.get(ctx.ID().getText()) == VarType.INT){
+                ByteCodeGenerator.loopVBegin(ctx.ID().getText());
+            }
+            else{
+                raiseError(ctx.getStart().getLine() + " Using real value in loop.");
+            }
+        }
+        else{
+            raiseError(ctx.getStart().getLine() + " Using undeclared value in loop.");
+        }
+    }
+
+    @Override
+    public void exitLop(@NotNull GramatykaParser.LopContext ctx) {
+        ByteCodeGenerator.loopEnd();
+    }
+
+    @Override
     public void enterCond(@NotNull GramatykaParser.CondContext ctx) {
         iff = true;
 
@@ -262,7 +289,19 @@ public class ActionImpl extends GramatykaBaseListener  {
         String ID = ctx.ID().getText();
         String INT = ctx.INT().getText();
         if( local.containsKey(ID) ) {
-            ByteCodeGenerator.gt(ID, INT);
+            ByteCodeGenerator.lt(ID, INT);
+        }
+        else{
+            raiseError(String.valueOf(ctx.getStart().getLine()) + " Using undeclared value.");
+        }
+    }
+
+    @Override
+    public void exitLe(@NotNull GramatykaParser.LeContext ctx) {
+        String ID = ctx.ID().getText();
+        String INT = ctx.INT().getText();
+        if( local.containsKey(ID) ) {
+            ByteCodeGenerator.le(ID, INT);
         }
         else{
             raiseError(String.valueOf(ctx.getStart().getLine()) + " Using undeclared value.");
@@ -274,7 +313,19 @@ public class ActionImpl extends GramatykaBaseListener  {
         String ID = ctx.ID().getText();
         String INT = ctx.INT().getText();
         if( local.containsKey(ID) ) {
-            ByteCodeGenerator.lt(ID, INT);
+            ByteCodeGenerator.gt(ID, INT);
+        }
+        else{
+            raiseError(String.valueOf(ctx.getStart().getLine())+ " Using undeclared value.");
+        }
+    }
+
+    @Override
+    public void exitGe(@NotNull GramatykaParser.GeContext ctx) {
+        String ID = ctx.ID().getText();
+        String INT = ctx.INT().getText();
+        if( local.containsKey(ID) ) {
+            ByteCodeGenerator.ge(ID, INT);
         }
         else{
             raiseError(String.valueOf(ctx.getStart().getLine())+ " Using undeclared value.");

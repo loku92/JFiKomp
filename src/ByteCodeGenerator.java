@@ -90,7 +90,7 @@ public class ByteCodeGenerator {
         reg++;
     }
 
-    static void sub_double(String val1, String val2){
+    static void sub_double(String val2, String val1){
         main_text += "%"+reg+" = fsub double "+val1+", "+val2+"\n";
         reg++;
     }
@@ -100,7 +100,7 @@ public class ByteCodeGenerator {
         reg++;
     }
 
-    static void div_double(String val1, String val2){
+    static void div_double(String val2, String val1){
         main_text += "%"+reg+" = fdiv double "+val1+", "+val2+"\n";
         reg++;
     }
@@ -135,20 +135,82 @@ public class ByteCodeGenerator {
         reg++;
     }
 
-    static void gt(String id, String value){
+    static void lt(String id, String value){
         main_text += "%"+reg+" = load i32* %"+id+"\n";
         reg++;
         main_text += "%"+reg+" = icmp slt i32 %"+(reg-1)+", "+value+"\n";
         reg++;
     }
 
-    static void lt(String id, String value){
+    static void le(String id, String value){
+        main_text += "%"+reg+" = load i32* %"+id+"\n";
+        reg++;
+        main_text += "%"+reg+" = icmp sle i32 %"+(reg-1)+", "+value+"\n";
+        reg++;
+    }
+
+    static void gt(String id, String value){
         main_text += "%"+reg+" = load i32* %"+id+"\n";
         reg++;
         main_text += "%"+reg+" = icmp sgt i32 %"+(reg-1)+", "+value+"\n";
         reg++;
     }
 
+    static void ge(String id, String value){
+        main_text += "%"+reg+" = load i32* %"+id+"\n";
+        reg++;
+        main_text += "%"+reg+" = icmp sge i32 %"+(reg-1)+", "+value+"\n";
+        reg++;
+    }
+
+    static void loopBegin(String n){
+        declare_i32(Integer.toString(reg));
+        int counter = reg;
+        reg++;
+        assign_i32(Integer.toString(counter), "0");
+        ifNo++;
+        main_text += "br label %cond"+ifNo+"\n";
+        main_text += "cond"+ifNo+":\n";
+
+        load_i32(Integer.toString(counter));
+        add_i32("%" + (reg - 1), "1");
+        assign_i32(Integer.toString(counter), "%" + (reg - 1));
+
+        main_text += "%"+reg+" = icmp slt i32 %"+(reg-2)+", "+n+"\n";
+        reg++;
+
+        main_text += "br i1 %"+(reg-1)+", label %true"+ifNo+", label %false"+ifNo+"\n";
+        main_text += "true"+ifNo+":\n";
+        brstack.push(ifNo);
+    }
+
+    static void loopVBegin(String id){
+        declare_i32(Integer.toString(reg));
+        int counter = reg;
+        reg++;
+        assign_i32(Integer.toString(counter), "0");
+        ifNo++;
+        main_text += "br label %cond"+ifNo+"\n";
+        main_text += "cond"+ifNo+":\n";
+
+        load_i32(Integer.toString(counter));
+        add_i32("%" + (reg - 1), "1");
+        assign_i32(Integer.toString(counter), "%" + (reg - 1));
+        load_i32(id);
+
+        main_text += "%"+reg+" = icmp sle i32 %"+(reg-2)+", "+"%" + (reg - 1)+"\n";
+        reg++;
+
+        main_text += "br i1 %"+(reg-1)+", label %true"+ifNo+", label %false"+ifNo+"\n";
+        main_text += "true"+ifNo+":\n";
+        brstack.push(ifNo);
+    }
+
+    static void loopEnd(){
+        int b = brstack.pop();
+        main_text += "br label %cond"+b+"\n";
+        main_text += "false"+b+":\n";
+    }
 
     static String generate(){
         String text = "";

@@ -49,21 +49,29 @@ inside:	PRINT ID		#print
 	|call               #kol
    ;
 
-cond: OIF (lt|gt|eq) CIF (NEWLINE)* OPEN NEWLINE* inif NEWLINE* CLOSE
+cond: OIF (lt|gt|eq|ge|le) CIF (NEWLINE)* OPEN NEWLINE* inif NEWLINE* CLOSE
 ;
 
 lt: ID '<' INT
  ;
+
+le: ID '<=' INT
+;
  
 gt: ID '>' INT
+     ;
+
+ge: ID '>=' INT
      ;
      
 eq: ID '==' INT
  ;
 
-loop: 'loop(' value ')' NEWLINE* OPEN NEWLINE* (inside comment?| comment )+ NEWLINE* CLOSE
+loop: 'loop(' loopcond ')' NEWLINE* OPEN NEWLINE* (inside comment?| comment )+ NEWLINE* CLOSE
  ;
- 
+
+loopcond: INT #condint
+        | ID #condvalue;
 
 PRINT:	'print'
    ;
