@@ -28,13 +28,7 @@ value: ID   #id
 function: 'function' call OPEN (inside comment?| comment )+ CLOSE
 ;
 
-call: ID args
-;
-
-args: '(' ((value | ID)(restvalue)*)* ')'
-;
-
-restvalue: ','(value|ID)
+call: ID '()'
 ;
 
 inif:(inside comment?| comment )+
