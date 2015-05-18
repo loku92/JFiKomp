@@ -24,12 +24,11 @@ public class ActionImpl extends GramatykaBaseListener  {
 
     HashMap<String, VarType> global = new HashMap<String, VarType>();
     HashMap<String, VarType> local = new HashMap<String, VarType>();
+    HashMap<String, VarType> funs = new HashMap<>();
     Stack<Value> stack = new Stack<Value>();
     boolean isLocal = false;
-    boolean isDeclaration = false;
     boolean expr = false;
     boolean iff = false;
-    boolean loop = false;
 
     @Override
     public void exitProg(@NotNull GramatykaParser.ProgContext ctx) {
@@ -38,24 +37,43 @@ public class ActionImpl extends GramatykaBaseListener  {
 
     @Override
     public void exitAssign(@NotNull GramatykaParser.AssignContext ctx) {
-        String ID = ctx.ID().getText();
-        Value v = stack.pop();
-        if (v.type == VarType.INT) {
-            if (!local.containsKey(ID)) {
-                local.put(ID, v.type);
-                ByteCodeGenerator.declare_i32(ID);
+        if(isLocal) {
+            String ID = ctx.ID().getText();
+            Value v = stack.pop();
+            if (v.type == VarType.INT) {
+                if (!local.containsKey(ID)) {
+                    local.put(ID, v.type);
+                    ByteCodeGenerator.declare_i32(ID, isLocal);
+                }
+                ByteCodeGenerator.assign_i32(ID, v.name);
+            } else if (v.type == VarType.REAL) {
+                if (!local.containsKey(ID)) {
+                    local.put(ID, v.type);
+                    ByteCodeGenerator.declare_double(ID, isLocal);
+                }
+                ByteCodeGenerator.assign_double(ID, v.name);
+            } else {
+                raiseError(String.valueOf(ctx.getStart().getLine()));
             }
-            ByteCodeGenerator.assign_i32(ID, v.name);
-        }
-        else if (v.type == VarType.REAL) {
-            if (!local.containsKey(ID)) {
-                local.put(ID, v.type);
-                ByteCodeGenerator.declare_double(ID);
-            }
-            ByteCodeGenerator.assign_double(ID, v.name);
         }
         else{
-            raiseError(String.valueOf(ctx.getStart().getLine()));
+            String ID = ctx.ID().getText();
+            Value v = stack.pop();
+            if (v.type == VarType.INT) {
+                if (!global.containsKey(ID)) {
+                    global.put(ID, v.type);
+                    ByteCodeGenerator.declare_i32(ID, isLocal);
+                }
+                ByteCodeGenerator.assign_i32(ID, v.name);
+            } else if (v.type == VarType.REAL) {
+                if (!global.containsKey(ID)) {
+                    global.put(ID, v.type);
+                    ByteCodeGenerator.declare_double(ID, isLocal);
+                }
+                ByteCodeGenerator.assign_double(ID, v.name);
+            } else {
+                raiseError(String.valueOf(ctx.getStart().getLine()));
+            }
         }
 
     }
@@ -145,25 +163,41 @@ public class ActionImpl extends GramatykaBaseListener  {
     public void exitPrint(@NotNull GramatykaParser.PrintContext ctx) {
         String ID = ctx.ID().getText();
         VarType type = local.get(ID);
+        VarType gtype = global.get(ID);
         if (type != null) {
-            if (type == VarType.INT) {
-                ByteCodeGenerator.printf_i32(ID);
-            }
-            if (type == VarType.REAL) {
-                ByteCodeGenerator.printf_double(ID);
-            }
+            print(type,ID);
+        }
+        else if (gtype != null){
+            print(type,ID);
         }
         else{
             raiseError(String.valueOf(ctx.getStart().getLine()) + " Print undeclared value.");
         }
     }
 
+    private void print(VarType type, String ID){
+        if (type == VarType.INT) {
+            ByteCodeGenerator.printf_i32(ID);
+        }
+        if (type == VarType.REAL) {
+            ByteCodeGenerator.printf_double(ID);
+        }
+    }
+
     @Override
     public void exitRead(@NotNull GramatykaParser.ReadContext ctx) {
         String ID = ctx.ID().getText();
-        if(!local.containsKey(ID)){
-            local.put(ID, VarType.INT);
-            ByteCodeGenerator.declare_i32(ID);
+        if(isLocal) {
+            if (!local.containsKey(ID)) {
+                local.put(ID, VarType.INT);
+                ByteCodeGenerator.declare_i32(ID, isLocal);
+            }
+        }
+        else{
+            if (!global.containsKey(ID)) {
+                global.put(ID, VarType.INT);
+                ByteCodeGenerator.declare_i32(ID, isLocal);
+            }
         }
         ByteCodeGenerator.scanf_i32(ID);
 
@@ -172,9 +206,17 @@ public class ActionImpl extends GramatykaBaseListener  {
     @Override
     public void enterReadReal(@NotNull GramatykaParser.ReadRealContext ctx) {
         String ID = ctx.ID().getText();
-        if(!local.containsKey(ID)){
-            local.put(ID, VarType.REAL);
-            ByteCodeGenerator.declare_double(ID);
+        if (isLocal) {
+            if (!local.containsKey(ID)) {
+                local.put(ID, VarType.REAL);
+                ByteCodeGenerator.declare_double(ID, isLocal);
+            }
+        }
+        else{
+            if (!global.containsKey(ID)) {
+                global.put(ID, VarType.REAL);
+                ByteCodeGenerator.declare_double(ID, isLocal);
+            }
         }
         ByteCodeGenerator.scanf_double(ID);
     }
@@ -197,9 +239,7 @@ public class ActionImpl extends GramatykaBaseListener  {
 
     @Override
     public void exitInt(@NotNull GramatykaParser.IntContext ctx) {
-
-            stack.push(new Value(ctx.INT().getText(), VarType.INT));
-
+        stack.push(new Value(ctx.INT().getText(), VarType.INT));
     }
 
     @Override
@@ -211,26 +251,44 @@ public class ActionImpl extends GramatykaBaseListener  {
     public void exitId(@NotNull GramatykaParser.IdContext ctx) {
         if (expr) {
             VarType t = local.get(ctx.ID().getText());
-            if(t == VarType.INT) {
-                ByteCodeGenerator.load_i32(ctx.ID().getText());
-                stack.push(new Value("%" + (ByteCodeGenerator.reg - 1), VarType.INT));
+            VarType gt = global.get(ctx.ID().getText());
+            if(isLocal) {
+                if (t != null) {
+                    if (t == VarType.INT) {
+                        ByteCodeGenerator.load_i32(ctx.ID().getText());
+                        stack.push(new Value("%" + (ByteCodeGenerator.reg - 1), VarType.INT));
+                    } else if (t == VarType.REAL) {
+                        ByteCodeGenerator.load_double(ctx.ID().getText());
+                        stack.push(new Value("%" + (ByteCodeGenerator.reg - 1), VarType.REAL));
+                    }
+                }
+                else if(gt != null){
+                    load(gt, ctx.ID().getText());
+                }
             }
-            else if(t == VarType.REAL) {
-                ByteCodeGenerator.load_double(ctx.ID().getText());
-                stack.push(new Value("%" + (ByteCodeGenerator.reg - 1), VarType.REAL));
+            else{
+                load(gt, ctx.ID().getText());
             }
+        }
+    }
+
+    private void load(VarType t,String ID){
+        if (t == VarType.INT) {
+            ByteCodeGenerator.load_i32(ID);
+            stack.push(new Value("@" + (ByteCodeGenerator.reg - 1), VarType.INT));
+        } else if (t == VarType.REAL) {
+            ByteCodeGenerator.load_double(ID);
+            stack.push(new Value("@" + (ByteCodeGenerator.reg - 1), VarType.REAL));
         }
     }
 
     @Override
     public void enterFunction(@NotNull GramatykaParser.FunctionContext ctx) {
         isLocal = true;
-        isDeclaration = true;
     }
 
     @Override
     public void exitFunction(@NotNull GramatykaParser.FunctionContext ctx) {
-        isDeclaration = false;
         isLocal = false;
     }
 
@@ -262,7 +320,6 @@ public class ActionImpl extends GramatykaBaseListener  {
     @Override
     public void enterCond(@NotNull GramatykaParser.CondContext ctx) {
         iff = true;
-
     }
 
     @Override
@@ -405,5 +462,6 @@ public class ActionImpl extends GramatykaBaseListener  {
 
     public void raiseError(String text){
         System.err.println("Error in line:" + text);
+        System.exit(-1);
     }
 }

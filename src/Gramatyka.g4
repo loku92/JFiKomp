@@ -42,6 +42,7 @@ inif:(inside comment?| comment )+
 
 inside:	PRINT ID		#print
     | ID '=' expr       #assign
+    | ID '=' call       #retCall
 	| READ ID   		#read
 	| 'readr' ID        #readReal
 	| loop              #lop

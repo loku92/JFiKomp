@@ -10,10 +10,37 @@ public class ByteCodeGenerator {
 
     static String header_text = "";
     static String main_text = "";
+    static String buffer = "";
     static int reg = 1;
-    static int ifNo = 0;
+    static int fun_reg = 1;
+    static int if_no = 0;
 
     static Stack<Integer> brstack = new Stack<Integer>();
+
+    static void functionstart(String id){
+        main_text += buffer;
+        main_tmp = tmp;
+        buffer = "define i32 @"+id+"() nounwind {\n";
+        tmp = 1;
+    }
+
+    static void functionend(){
+        buffer += "ret i32 %"+(tmp-1)+"\n";
+        buffer += "}\n";
+        header_text += buffer;
+        buffer = "";
+        tmp = main_tmp;
+    }
+
+    static void call(String id){
+        buffer += "%"+tmp+" = call i32 @"+id+"()\n";
+        tmp++;
+    }
+
+
+    static void close_main(){
+        main_text += buffer;
+    }
 
     static void printf_i32(String id){
         main_text += "%"+ reg +" = load i32* %"+id+"\n";
@@ -39,12 +66,22 @@ public class ByteCodeGenerator {
         reg++;
     }
 
-    static void declare_i32(String id){
-        main_text += "%"+id+" = alloca i32\n";
+    static void declare_i32(String id, boolean local){
+        if(local) {
+            main_text += "%" + id + " = alloca i32\n";
+        }
+        else{
+            header_text += "@"+id+" = global i32 0\n";
+        }
     }
 
-    static void declare_double(String id){
-        main_text += "%"+id+" = alloca double\n";
+    static void declare_double(String id, boolean local){
+        if(local) {
+            main_text += "%" + id + " = alloca double\n";
+        }
+        else{
+            header_text += "@"+id+" = global double 0\n";
+        }
     }
 
     static void assign_i32(String id, String value){
@@ -116,10 +153,10 @@ public class ByteCodeGenerator {
     }
 
     static void ifBegin(){
-        ifNo++;
-        main_text += "br i1 %"+(reg-1)+", label %ok"+ ifNo +", label %fail"+ ifNo +"\n";
-        main_text += "ok"+ ifNo +":\n";
-        brstack.push(ifNo);
+        if_no++;
+        main_text += "br i1 %"+(reg-1)+", label %ok"+ if_no +", label %fail"+ if_no +"\n";
+        main_text += "ok"+ if_no +":\n";
+        brstack.push(if_no);
     }
 
     static void ifEnd(){
@@ -164,13 +201,13 @@ public class ByteCodeGenerator {
     }
 
     static void loopBegin(String n){
-        declare_i32(Integer.toString(reg));
+        declare_i32(Integer.toString(reg),false);
         int counter = reg;
         reg++;
         assign_i32(Integer.toString(counter), "0");
-        ifNo++;
-        main_text += "br label %cond"+ifNo+"\n";
-        main_text += "cond"+ifNo+":\n";
+        if_no++;
+        main_text += "br label %cond"+ if_no +"\n";
+        main_text += "cond"+ if_no +":\n";
 
         load_i32(Integer.toString(counter));
         add_i32("%" + (reg - 1), "1");
@@ -179,19 +216,19 @@ public class ByteCodeGenerator {
         main_text += "%"+reg+" = icmp slt i32 %"+(reg-2)+", "+n+"\n";
         reg++;
 
-        main_text += "br i1 %"+(reg-1)+", label %true"+ifNo+", label %false"+ifNo+"\n";
-        main_text += "true"+ifNo+":\n";
-        brstack.push(ifNo);
+        main_text += "br i1 %"+(reg-1)+", label %true"+ if_no +", label %false"+ if_no +"\n";
+        main_text += "true"+ if_no +":\n";
+        brstack.push(if_no);
     }
 
     static void loopVBegin(String id){
-        declare_i32(Integer.toString(reg));
+        declare_i32(Integer.toString(reg),false);
         int counter = reg;
         reg++;
         assign_i32(Integer.toString(counter), "0");
-        ifNo++;
-        main_text += "br label %cond"+ifNo+"\n";
-        main_text += "cond"+ifNo+":\n";
+        if_no++;
+        main_text += "br label %cond"+ if_no +"\n";
+        main_text += "cond"+ if_no +":\n";
 
         load_i32(Integer.toString(counter));
         add_i32("%" + (reg - 1), "1");
@@ -201,9 +238,9 @@ public class ByteCodeGenerator {
         main_text += "%"+reg+" = icmp sle i32 %"+(reg-2)+", "+"%" + (reg - 1)+"\n";
         reg++;
 
-        main_text += "br i1 %"+(reg-1)+", label %true"+ifNo+", label %false"+ifNo+"\n";
-        main_text += "true"+ifNo+":\n";
-        brstack.push(ifNo);
+        main_text += "br i1 %"+(reg-1)+", label %true"+ if_no +", label %false"+ if_no +"\n";
+        main_text += "true"+ if_no +":\n";
+        brstack.push(if_no);
     }
 
     static void loopEnd(){
