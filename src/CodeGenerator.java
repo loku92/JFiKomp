@@ -6,7 +6,7 @@ import java.util.Stack;
 /**
  * Created by loku on 02.05.15.
  */
-public class ByteCodeGenerator {
+public class CodeGenerator {
 
     static String header_text = "";
     static String main_text = "";
@@ -42,15 +42,15 @@ public class ByteCodeGenerator {
         main_text += buffer;
     }
 
-    static void printf_i32(String id){
-        buffer += "%"+ tmp +" = load i32* %"+id+"\n";
+    static void printf_i32(String id, String p){
+        buffer += "%"+ tmp +" = load i32* "+p+id+"\n";
         tmp++;
-        buffer += "%"+ tmp +" = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([4 x i8]* @strpi, i32 0, i32 0), i32 %"+(tmp -1)+")\n";
+        buffer += "%" + tmp +" = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([4 x i8]* @strpi, i32 0, i32 0), i32 %"+(tmp -1)+")\n";
         tmp++;
     }
 
-    static void printf_double(String id){
-        buffer += "%"+ tmp +" = load double* %"+id+"\n";
+    static void printf_double(String id, String p){
+        buffer += "%"+ tmp +" = load double* "+p+id+"\n";
         tmp++;
         buffer += "%"+ tmp +" = call i32(i8*, ...)* @printf(i8* getelementptr inbounds ([4 x i8]* @strpd, i32 0, i32 0), double %"+(tmp -1)+")\n";
         tmp++;
@@ -84,12 +84,12 @@ public class ByteCodeGenerator {
         }
     }
 
-    static void assign_i32(String id, String value){
-        buffer += "store i32 "+value+", i32* %"+id+"\n";
+    static void assign_i32(String id, String value, String p){
+        buffer += "store i32 "+value+", i32* "+p+id+"\n";
     }
 
-    static void assign_double(String id, String value){
-        buffer += "store double "+value+", double* %"+id+"\n";
+    static void assign_double(String id, String value, String p){
+        buffer += "store double "+value+", double* "+p+id+"\n";
     }
 
     static void load_i32(String id){
@@ -201,17 +201,17 @@ public class ByteCodeGenerator {
     }
 
     static void loopBegin(String n){
-        declare_i32(Integer.toString(tmp),false);
+        declare_i32(Integer.toString(tmp),true);
         int counter = tmp;
         tmp++;
-        assign_i32(Integer.toString(counter), "0");
+        assign_i32(Integer.toString(counter), "0","%");
         if_no++;
         buffer += "br label %cond"+ if_no +"\n";
         buffer += "cond"+ if_no +":\n";
 
         load_i32(Integer.toString(counter));
         add_i32("%" + (tmp - 1), "1");
-        assign_i32(Integer.toString(counter), "%" + (tmp - 1));
+        assign_i32(Integer.toString(counter), "%" + (tmp - 1),"%");
 
         buffer += "%"+ tmp +" = icmp slt i32 %"+(tmp -2)+", "+n+"\n";
         tmp++;
@@ -225,14 +225,14 @@ public class ByteCodeGenerator {
         declare_i32(Integer.toString(tmp),false);
         int counter = tmp;
         tmp++;
-        assign_i32(Integer.toString(counter), "0");
+        assign_i32(Integer.toString(counter), "0","%");
         if_no++;
         buffer += "br label %cond"+ if_no +"\n";
         buffer += "cond"+ if_no +":\n";
 
         load_i32(Integer.toString(counter));
         add_i32("%" + (tmp - 1), "1");
-        assign_i32(Integer.toString(counter), "%" + (tmp - 1));
+        assign_i32(Integer.toString(counter), "%" + (tmp - 1),"%");
         load_i32(id);
 
         buffer += "%"+ tmp +" = icmp sle i32 %"+(tmp -2)+", "+"%" + (tmp - 1)+"\n";
