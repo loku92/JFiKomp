@@ -8,7 +8,7 @@ import java.util.Stack;
  * Created by loku on 02.05.15.
  */
 
-//TODO : fix value range picker, fun int or real,conditions,scanf
+//TODO : fix value range picker, fun int or real,scanf
 enum VarType {
     INT, REAL
 }
@@ -372,13 +372,15 @@ public class ActionImpl extends GramatykaBaseListener  {
         CodeGenerator.ifEnd();
     }
 
-    //TODO: fix conditions
     @Override
     public void exitLt(@NotNull GramatykaParser.LtContext ctx) {
         String ID = ctx.ID().getText();
         String INT = ctx.INT().getText();
-        if( local.containsKey(ID) || global.containsKey(ID) ) {
-            CodeGenerator.lt(ID, INT);
+        if( local.containsKey(ID)) {
+            CodeGenerator.lt(ID, INT,"%");
+        }
+        else if(global.containsKey(ID)){
+            CodeGenerator.lt(ID, INT,"@");
         }
         else{
             raiseError(String.valueOf(ctx.getStart().getLine()) + " Using undeclared value.");
@@ -389,8 +391,11 @@ public class ActionImpl extends GramatykaBaseListener  {
     public void exitLe(@NotNull GramatykaParser.LeContext ctx) {
         String ID = ctx.ID().getText();
         String INT = ctx.INT().getText();
-        if( local.containsKey(ID) || global.containsKey(ID)) {
-            CodeGenerator.le(ID, INT);
+        if( local.containsKey(ID)) {
+            CodeGenerator.le(ID, INT, "%");
+        }
+        else if(global.containsKey(ID)){
+            CodeGenerator.le(ID, INT, "@");
         }
         else{
             raiseError(String.valueOf(ctx.getStart().getLine()) + " Using undeclared value.");
@@ -401,8 +406,11 @@ public class ActionImpl extends GramatykaBaseListener  {
     public void exitGt(@NotNull GramatykaParser.GtContext ctx) {
         String ID = ctx.ID().getText();
         String INT = ctx.INT().getText();
-        if( local.containsKey(ID) || global.containsKey(ID) ) {
-            CodeGenerator.gt(ID, INT);
+        if( local.containsKey(ID)) {
+            CodeGenerator.gt(ID, INT, "%");
+        }
+        else if(global.containsKey(ID)){
+            CodeGenerator.gt(ID, INT, "@");
         }
         else{
             raiseError(String.valueOf(ctx.getStart().getLine())+ " Using undeclared value.");
@@ -413,8 +421,11 @@ public class ActionImpl extends GramatykaBaseListener  {
     public void exitGe(@NotNull GramatykaParser.GeContext ctx) {
         String ID = ctx.ID().getText();
         String INT = ctx.INT().getText();
-        if( local.containsKey(ID) || global.containsKey(ID) ) {
-            CodeGenerator.ge(ID, INT);
+        if( local.containsKey(ID)) {
+            CodeGenerator.ge(ID, INT, "%");
+        }
+        else if(global.containsKey(ID)){
+            CodeGenerator.ge(ID, INT, "@");
         }
         else{
             raiseError(String.valueOf(ctx.getStart().getLine())+ " Using undeclared value.");
@@ -425,8 +436,11 @@ public class ActionImpl extends GramatykaBaseListener  {
     public void exitEq(@NotNull GramatykaParser.EqContext ctx) {
         String ID = ctx.ID().getText();
         String INT = ctx.INT().getText();
-        if( local.containsKey(ID) || global.containsKey(ID)) {
-            CodeGenerator.eq(ID, INT);
+        if( local.containsKey(ID)) {
+            CodeGenerator.eq(ID, INT, "%");
+        }
+        else if(global.containsKey(ID)){
+            CodeGenerator.eq(ID, INT,"@");
         }
         else{
             raiseError(String.valueOf(ctx.getStart().getLine())+ " Using undeclared value.");

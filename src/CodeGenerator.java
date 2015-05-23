@@ -165,36 +165,36 @@ public class CodeGenerator {
         buffer += "fail"+b+":\n";
     }
 
-    static void eq(String id, String value){
-        buffer += "%"+ tmp +" = load i32* %"+id+"\n";
+    static void eq(String id, String value,String p){
+        buffer += "%"+ tmp +" = load i32* "+p+id+"\n";
         tmp++;
         buffer += "%"+ tmp +" = icmp eq i32 %"+(tmp -1)+", "+value+"\n";
         tmp++;
     }
 
-    static void lt(String id, String value){
-        buffer += "%"+ tmp +" = load i32* %"+id+"\n";
+    static void lt(String id, String value,String p){
+        buffer += "%"+ tmp +" = load i32* "+p+id+"\n";
         tmp++;
         buffer += "%"+ tmp +" = icmp slt i32 %"+(tmp -1)+", "+value+"\n";
         tmp++;
     }
 
-    static void le(String id, String value){
-        buffer += "%"+ tmp +" = load i32* %"+id+"\n";
+    static void le(String id, String value, String p){
+        buffer += "%"+ tmp +" = load i32* "+p+id+"\n";
         tmp++;
         buffer += "%"+ tmp +" = icmp sle i32 %"+(tmp -1)+", "+value+"\n";
         tmp++;
     }
 
-    static void gt(String id, String value){
-        buffer += "%"+ tmp +" = load i32* %"+id+"\n";
+    static void gt(String id, String value, String p){
+        buffer += "%"+ tmp +" = load i32* "+p+id+"\n";
         tmp++;
         buffer += "%"+ tmp +" = icmp sgt i32 %"+(tmp -1)+", "+value+"\n";
         tmp++;
     }
 
-    static void ge(String id, String value){
-        buffer += "%"+ tmp +" = load i32* %"+id+"\n";
+    static void ge(String id, String value, String p){
+        buffer += "%"+ tmp +" = load i32* "+p+id+"\n";
         tmp++;
         buffer += "%"+ tmp +" = icmp sge i32 %"+(tmp -1)+", "+value+"\n";
         tmp++;
