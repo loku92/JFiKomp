@@ -11,30 +11,30 @@ public class CodeGenerator {
     static String header_text = "";
     static String main_text = "";
     static String buffer = "";
-    static int tmp = 1;
-    static int main_tmp = 1;
+    static int reg = 1;
+    static int tmp_reg = 1;
     static int if_no = 0;
 
     static Stack<Integer> brstack = new Stack<Integer>();
 
     static void functionstart(String id){
         main_text += buffer;
-        main_tmp = tmp;
+        tmp_reg = reg;
         buffer = "define i32 @"+id+"() nounwind {\n";
-        tmp = 1;
+        reg = 1;
     }
 
     static void functionend(){
-        buffer += "ret i32 %"+(tmp -1)+"\n";
+        buffer += "ret i32 %"+(reg -1)+"\n";
         buffer += "}\n";
         header_text += buffer;
         buffer = "";
-        tmp = main_tmp;
+        reg = tmp_reg;
     }
 
     static void call(String id){
-        buffer += "%"+ tmp +" = call i32 @"+id+"()\n";
-        tmp++;
+        buffer += "%"+ reg +" = call i32 @"+id+"()\n";
+        reg++;
     }
 
 
@@ -43,27 +43,27 @@ public class CodeGenerator {
     }
 
     static void printf_i32(String id, String p){
-        buffer += "%"+ tmp +" = load i32* "+p+id+"\n";
-        tmp++;
-        buffer += "%" + tmp +" = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([4 x i8]* @strpi, i32 0, i32 0), i32 %"+(tmp -1)+")\n";
-        tmp++;
+        buffer += "%"+ reg +" = load i32* "+p+id+"\n";
+        reg++;
+        buffer += "%" + reg +" = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([4 x i8]* @strpi, i32 0, i32 0), i32 %"+(reg -1)+")\n";
+        reg++;
     }
 
     static void printf_double(String id, String p){
-        buffer += "%"+ tmp +" = load double* "+p+id+"\n";
-        tmp++;
-        buffer += "%"+ tmp +" = call i32(i8*, ...)* @printf(i8* getelementptr inbounds ([4 x i8]* @strpd, i32 0, i32 0), double %"+(tmp -1)+")\n";
-        tmp++;
+        buffer += "%"+ reg +" = load double* "+p+id+"\n";
+        reg++;
+        buffer += "%"+ reg +" = call i32(i8*, ...)* @printf(i8* getelementptr inbounds ([4 x i8]* @strpd, i32 0, i32 0), double %"+(reg -1)+")\n";
+        reg++;
     }
 
-    static void scanf_i32(String id){
-        buffer += "%"+ tmp +" = call i32 (i8*, ...)* @__isoc99_scanf(i8* getelementptr inbounds ([3 x i8]* @strs, i32 0, i32 0), i32* %"+id+")\n";
-        tmp++;
+    static void scanf_i32(String id, String p){
+        buffer += "%"+ reg +" = call i32 (i8*, ...)* @__isoc99_scanf(i8* getelementptr inbounds ([3 x i8]* @strs, i32 0, i32 0), i32* "+p+id+")\n";
+        reg++;
     }
 
-    static void scanf_double(String id){
-        buffer += "%"+ tmp +" = call i32 (i8*, ...)* @__isoc99_scanf(i8* getelementptr inbounds ([4 x i8]* @strr, i32 0, i32 0), double* %"+id+")\n";
-        tmp++;
+    static void scanf_double(String id, String p){
+        buffer += "%"+ reg +" = call i32 (i8*, ...)* @__isoc99_scanf(i8* getelementptr inbounds ([4 x i8]* @strr, i32 0, i32 0), double* "+p+id+")\n";
+        reg++;
     }
 
     static void declare_i32(String id, boolean local){
@@ -80,7 +80,7 @@ public class CodeGenerator {
             buffer += "%" + id + " = alloca double\n";
         }
         else{
-            header_text += "@"+id+" = global double 0\n";
+            header_text += "@"+id+" = global double 0.0\n";
         }
     }
 
@@ -93,68 +93,68 @@ public class CodeGenerator {
     }
 
     static void load_i32(String id){
-        buffer += "%"+ tmp +" = load i32* %"+id+"\n";
-        tmp++;
+        buffer += "%"+ reg +" = load i32* %"+id+"\n";
+        reg++;
     }
 
     static void load_double(String id){
-        buffer += "%"+ tmp +" = load double* %"+id+"\n";
-        tmp++;
+        buffer += "%"+ reg +" = load double* %"+id+"\n";
+        reg++;
     }
 
     static void add_i32(String val1, String val2){
-        buffer += "%"+ tmp +" = add i32 "+val1+", "+val2+"\n";
-        tmp++;
+        buffer += "%"+ reg +" = add i32 "+val1+", "+val2+"\n";
+        reg++;
     }
 
     static void add_double(String val1, String val2){
-        buffer += "%"+ tmp +" = fadd double "+val1+", "+val2+"\n";
-        tmp++;
+        buffer += "%"+ reg +" = fadd double "+val1+", "+val2+"\n";
+        reg++;
     }
 
     static void mult_i32(String val1, String val2){
-        buffer += "%"+ tmp +" = mul i32 "+val1+", "+val2+"\n";
-        tmp++;
+        buffer += "%"+ reg +" = mul i32 "+val1+", "+val2+"\n";
+        reg++;
     }
 
     static void mult_double(String val1, String val2){
-        buffer += "%"+ tmp +" = fmul double "+val1+", "+val2+"\n";
-        tmp++;
+        buffer += "%"+ reg +" = fmul double "+val1+", "+val2+"\n";
+        reg++;
     }
 
     static void sub_i32(String val1, String val2){
-        buffer += "%"+ tmp +" = sub i32 "+val2+", "+val1+"\n";
-        tmp++;
+        buffer += "%"+ reg +" = sub i32 "+val2+", "+val1+"\n";
+        reg++;
     }
 
     static void sub_double(String val2, String val1){
-        buffer += "%"+ tmp +" = fsub double "+val1+", "+val2+"\n";
-        tmp++;
+        buffer += "%"+ reg +" = fsub double "+val1+", "+val2+"\n";
+        reg++;
     }
 
     static void div_i32(String val1, String val2){
-        buffer += "%"+ tmp +" = sdiv i32 "+val2+", "+val1+"\n";
-        tmp++;
+        buffer += "%"+ reg +" = sdiv i32 "+val2+", "+val1+"\n";
+        reg++;
     }
 
     static void div_double(String val2, String val1){
-        buffer += "%"+ tmp +" = fdiv double "+val1+", "+val2+"\n";
-        tmp++;
+        buffer += "%"+ reg +" = fdiv double "+val1+", "+val2+"\n";
+        reg++;
     }
 
     static void toDouble(String id){
-        buffer += "%"+ tmp +" = sitofp i32 "+id+" to double\n";
-        tmp++;
+        buffer += "%"+ reg +" = sitofp i32 "+id+" to double\n";
+        reg++;
     }
 
     static void toInt(String id){
-        buffer += "%"+ tmp +" = fptosi double "+id+" to i32\n";
-        tmp++;
+        buffer += "%"+ reg +" = fptosi double "+id+" to i32\n";
+        reg++;
     }
 
     static void ifBegin(){
         if_no++;
-        buffer += "br i1 %"+(tmp -1)+", label %ok"+ if_no +", label %fail"+ if_no +"\n";
+        buffer += "br i1 %"+(reg -1)+", label %ok"+ if_no +", label %fail"+ if_no +"\n";
         buffer += "ok"+ if_no +":\n";
         brstack.push(if_no);
     }
@@ -166,79 +166,79 @@ public class CodeGenerator {
     }
 
     static void eq(String id, String value,String p){
-        buffer += "%"+ tmp +" = load i32* "+p+id+"\n";
-        tmp++;
-        buffer += "%"+ tmp +" = icmp eq i32 %"+(tmp -1)+", "+value+"\n";
-        tmp++;
+        buffer += "%"+ reg +" = load i32* "+p+id+"\n";
+        reg++;
+        buffer += "%"+ reg +" = icmp eq i32 %"+(reg -1)+", "+value+"\n";
+        reg++;
     }
 
     static void lt(String id, String value,String p){
-        buffer += "%"+ tmp +" = load i32* "+p+id+"\n";
-        tmp++;
-        buffer += "%"+ tmp +" = icmp slt i32 %"+(tmp -1)+", "+value+"\n";
-        tmp++;
+        buffer += "%"+ reg +" = load i32* "+p+id+"\n";
+        reg++;
+        buffer += "%"+ reg +" = icmp slt i32 %"+(reg -1)+", "+value+"\n";
+        reg++;
     }
 
     static void le(String id, String value, String p){
-        buffer += "%"+ tmp +" = load i32* "+p+id+"\n";
-        tmp++;
-        buffer += "%"+ tmp +" = icmp sle i32 %"+(tmp -1)+", "+value+"\n";
-        tmp++;
+        buffer += "%"+ reg +" = load i32* "+p+id+"\n";
+        reg++;
+        buffer += "%"+ reg +" = icmp sle i32 %"+(reg -1)+", "+value+"\n";
+        reg++;
     }
 
     static void gt(String id, String value, String p){
-        buffer += "%"+ tmp +" = load i32* "+p+id+"\n";
-        tmp++;
-        buffer += "%"+ tmp +" = icmp sgt i32 %"+(tmp -1)+", "+value+"\n";
-        tmp++;
+        buffer += "%"+ reg +" = load i32* "+p+id+"\n";
+        reg++;
+        buffer += "%"+ reg +" = icmp sgt i32 %"+(reg -1)+", "+value+"\n";
+        reg++;
     }
 
     static void ge(String id, String value, String p){
-        buffer += "%"+ tmp +" = load i32* "+p+id+"\n";
-        tmp++;
-        buffer += "%"+ tmp +" = icmp sge i32 %"+(tmp -1)+", "+value+"\n";
-        tmp++;
+        buffer += "%"+ reg +" = load i32* "+p+id+"\n";
+        reg++;
+        buffer += "%"+ reg +" = icmp sge i32 %"+(reg -1)+", "+value+"\n";
+        reg++;
     }
 
     static void loopBegin(String n){
-        declare_i32(Integer.toString(tmp),true);
-        int counter = tmp;
-        tmp++;
+        declare_i32(Integer.toString(reg),true);
+        int counter = reg;
+        reg++;
         assign_i32(Integer.toString(counter), "0","%");
         if_no++;
         buffer += "br label %cond"+ if_no +"\n";
         buffer += "cond"+ if_no +":\n";
 
         load_i32(Integer.toString(counter));
-        add_i32("%" + (tmp - 1), "1");
-        assign_i32(Integer.toString(counter), "%" + (tmp - 1),"%");
+        add_i32("%" + (reg - 1), "1");
+        assign_i32(Integer.toString(counter), "%" + (reg - 1),"%");
 
-        buffer += "%"+ tmp +" = icmp slt i32 %"+(tmp -2)+", "+n+"\n";
-        tmp++;
+        buffer += "%"+ reg +" = icmp slt i32 %"+(reg -2)+", "+n+"\n";
+        reg++;
 
-        buffer += "br i1 %"+(tmp -1)+", label %true"+ if_no +", label %false"+ if_no +"\n";
+        buffer += "br i1 %"+(reg -1)+", label %true"+ if_no +", label %false"+ if_no +"\n";
         buffer += "true"+ if_no +":\n";
         brstack.push(if_no);
     }
 
     static void loopVBegin(String id){
-        declare_i32(Integer.toString(tmp),false);
-        int counter = tmp;
-        tmp++;
+        declare_i32(Integer.toString(reg),false);
+        int counter = reg;
+        reg++;
         assign_i32(Integer.toString(counter), "0","%");
         if_no++;
         buffer += "br label %cond"+ if_no +"\n";
         buffer += "cond"+ if_no +":\n";
 
         load_i32(Integer.toString(counter));
-        add_i32("%" + (tmp - 1), "1");
-        assign_i32(Integer.toString(counter), "%" + (tmp - 1),"%");
+        add_i32("%" + (reg - 1), "1");
+        assign_i32(Integer.toString(counter), "%" + (reg - 1),"%");
         load_i32(id);
 
-        buffer += "%"+ tmp +" = icmp sle i32 %"+(tmp -2)+", "+"%" + (tmp - 1)+"\n";
-        tmp++;
+        buffer += "%"+ reg +" = icmp sle i32 %"+(reg -2)+", "+"%" + (reg - 1)+"\n";
+        reg++;
 
-        buffer += "br i1 %"+(tmp -1)+", label %true"+ if_no +", label %false"+ if_no +"\n";
+        buffer += "br i1 %"+(reg -1)+", label %true"+ if_no +", label %false"+ if_no +"\n";
         buffer += "true"+ if_no +":\n";
         brstack.push(if_no);
     }

@@ -8,7 +8,7 @@ import java.util.Stack;
  * Created by loku on 02.05.15.
  */
 
-//TODO : fix value range picker, fun int or real,scanf
+//TODO : fun int or real,assign fun
 enum VarType {
     INT, REAL
 }
@@ -79,8 +79,9 @@ public class ActionImpl extends GramatykaBaseListener  {
                 raiseError(String.valueOf(ctx.getStart().getLine()));
             }
         }
-
     }
+
+
 
     @Override
     public void exitAdd(@NotNull GramatykaParser.AddContext ctx) {
@@ -89,11 +90,11 @@ public class ActionImpl extends GramatykaBaseListener  {
         if (v1.type == v2.type) {
             if (v1.type == VarType.INT) {
                 CodeGenerator.add_i32(v1.name, v2.name);
-                stack.push(new Value("%" + (CodeGenerator.tmp - 1), VarType.INT));
+                stack.push(new Value("%" + (CodeGenerator.reg - 1), VarType.INT));
             }
             if (v1.type == VarType.REAL) {
                 CodeGenerator.add_double(v1.name, v2.name);
-                stack.push(new Value("%" + (CodeGenerator.tmp - 1), VarType.REAL));
+                stack.push(new Value("%" + (CodeGenerator.reg - 1), VarType.REAL));
             }
         }
         else{
@@ -109,11 +110,11 @@ public class ActionImpl extends GramatykaBaseListener  {
         if (v1.type == v2.type) {
             if (v1.type == VarType.INT) {
                 CodeGenerator.mult_i32(v1.name, v2.name);
-                stack.push(new Value("%" + (CodeGenerator.tmp - 1), VarType.INT));
+                stack.push(new Value("%" + (CodeGenerator.reg - 1), VarType.INT));
             }
             if (v1.type == VarType.REAL) {
                 CodeGenerator.mult_double(v1.name, v2.name);
-                stack.push(new Value("%" + (CodeGenerator.tmp - 1), VarType.REAL));
+                stack.push(new Value("%" + (CodeGenerator.reg - 1), VarType.REAL));
             }
         }
         else{
@@ -129,11 +130,11 @@ public class ActionImpl extends GramatykaBaseListener  {
         if (v1.type == v2.type) {
             if (v1.type == VarType.INT) {
                 CodeGenerator.div_i32(v1.name, v2.name);
-                stack.push(new Value("%" + (CodeGenerator.tmp - 1), VarType.INT));
+                stack.push(new Value("%" + (CodeGenerator.reg - 1), VarType.INT));
             }
             if (v1.type == VarType.REAL) {
                 CodeGenerator.div_double(v1.name, v2.name);
-                stack.push(new Value("%" + (CodeGenerator.tmp - 1), VarType.REAL));
+                stack.push(new Value("%" + (CodeGenerator.reg - 1), VarType.REAL));
             }
         }
         else{
@@ -150,11 +151,11 @@ public class ActionImpl extends GramatykaBaseListener  {
         if (v1.type == v2.type) {
             if (v1.type == VarType.INT) {
                 CodeGenerator.sub_i32(v1.name, v2.name);
-                stack.push(new Value("%" + (CodeGenerator.tmp - 1), VarType.INT));
+                stack.push(new Value("%" + (CodeGenerator.reg - 1), VarType.INT));
             }
             if (v1.type == VarType.REAL) {
                 CodeGenerator.sub_double(v1.name, v2.name);
-                stack.push(new Value("%" + (CodeGenerator.tmp - 1), VarType.REAL));
+                stack.push(new Value("%" + (CodeGenerator.reg - 1), VarType.REAL));
             }
         }
         else{
@@ -191,10 +192,20 @@ public class ActionImpl extends GramatykaBaseListener  {
     @Override
     public void exitRead(@NotNull GramatykaParser.ReadContext ctx) {
         String ID = ctx.ID().getText();
+        String p = "@";
         if(isLocal) {
+            p="%";
             if (!local.containsKey(ID)) {
-                local.put(ID, VarType.INT);
-                CodeGenerator.declare_i32(ID, isLocal);
+                if (global.containsKey(ID)) {
+                    p="@";
+                    isLocal = false;
+                    CodeGenerator.declare_i32(ID, isLocal);
+                    isLocal=true;
+                }
+                else {
+                    local.put(ID, VarType.INT);
+                    CodeGenerator.declare_i32(ID, isLocal);
+                }
             }
         }
         else{
@@ -203,33 +214,43 @@ public class ActionImpl extends GramatykaBaseListener  {
                 CodeGenerator.declare_i32(ID, isLocal);
             }
         }
-        CodeGenerator.scanf_i32(ID);
+        CodeGenerator.scanf_i32(ID,p);
 
     }
 
     @Override
     public void enterReadReal(@NotNull GramatykaParser.ReadRealContext ctx) {
         String ID = ctx.ID().getText();
-        if (isLocal) {
+        String p = "@";
+        if(isLocal) {
+            p="%";
             if (!local.containsKey(ID)) {
-                local.put(ID, VarType.REAL);
-                CodeGenerator.declare_double(ID, isLocal);
+                if (global.containsKey(ID)) {
+                    p="@";
+                    isLocal = false;
+                    CodeGenerator.declare_double(ID, isLocal);
+                    isLocal=true;
+                }
+                else {
+                    local.put(ID, VarType.INT);
+                    CodeGenerator.declare_double(ID, isLocal);
+                }
             }
         }
         else{
             if (!global.containsKey(ID)) {
-                global.put(ID, VarType.REAL);
+                global.put(ID, VarType.INT);
                 CodeGenerator.declare_double(ID, isLocal);
             }
         }
-        CodeGenerator.scanf_double(ID);
+        CodeGenerator.scanf_double(ID,p);
     }
 
     @Override
     public void exitToint(@NotNull GramatykaParser.TointContext ctx) {
         Value v = stack.pop();
         CodeGenerator.toInt(v.name);
-        stack.push(new Value("%" + (CodeGenerator.tmp - 1), VarType.INT));
+        stack.push(new Value("%" + (CodeGenerator.reg - 1), VarType.INT));
         expr = false;
     }
 
@@ -237,7 +258,7 @@ public class ActionImpl extends GramatykaBaseListener  {
     public void exitToreal(@NotNull GramatykaParser.TorealContext ctx) {
         Value v = stack.pop();
         CodeGenerator.toDouble(v.name);
-        stack.push(new Value("%" + (CodeGenerator.tmp - 1), VarType.REAL));
+        stack.push(new Value("%" + (CodeGenerator.reg - 1), VarType.REAL));
         expr = false;
     }
 
@@ -260,10 +281,10 @@ public class ActionImpl extends GramatykaBaseListener  {
                 if (t != null) {
                     if (t == VarType.INT) {
                         CodeGenerator.load_i32(ctx.ID().getText());
-                        stack.push(new Value("%" + (CodeGenerator.tmp - 1), VarType.INT));
+                        stack.push(new Value("%" + (CodeGenerator.reg - 1), VarType.INT));
                     } else if (t == VarType.REAL) {
                         CodeGenerator.load_double(ctx.ID().getText());
-                        stack.push(new Value("%" + (CodeGenerator.tmp - 1), VarType.REAL));
+                        stack.push(new Value("%" + (CodeGenerator.reg - 1), VarType.REAL));
                     }
                 }
                 else if(gt != null){
@@ -279,10 +300,10 @@ public class ActionImpl extends GramatykaBaseListener  {
     private void load(VarType t,String ID){
         if (t == VarType.INT) {
             CodeGenerator.load_i32(ID);
-            stack.push(new Value("@" + (CodeGenerator.tmp - 1), VarType.INT));
+            stack.push(new Value("@" + (CodeGenerator.reg - 1), VarType.INT));
         } else if (t == VarType.REAL) {
             CodeGenerator.load_double(ID);
-            stack.push(new Value("@" + (CodeGenerator.tmp - 1), VarType.REAL));
+            stack.push(new Value("@" + (CodeGenerator.reg - 1), VarType.REAL));
         }
     }
 
@@ -440,7 +461,7 @@ public class ActionImpl extends GramatykaBaseListener  {
             CodeGenerator.eq(ID, INT, "%");
         }
         else if(global.containsKey(ID)){
-            CodeGenerator.eq(ID, INT,"@");
+            CodeGenerator.eq(ID, INT, "@");
         }
         else{
             raiseError(String.valueOf(ctx.getStart().getLine())+ " Using undeclared value.");
