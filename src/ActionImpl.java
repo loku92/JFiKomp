@@ -27,8 +27,10 @@ public class ActionImpl extends GramatykaBaseListener {
 
     HashMap<String, VarType> global = new HashMap<String, VarType>();
     HashMap<String, VarType> local = new HashMap<String, VarType>();
-    HashSet<String> funs = new HashSet<>();
+    HashMap<String, VarType> funs = new HashMap<>();
     Stack<Value> stack = new Stack<Value>();
+    String function;
+    static VarType last = VarType.INT;
     boolean isLocal = false;
     boolean expr = false;
     boolean iff = false;
@@ -39,30 +41,43 @@ public class ActionImpl extends GramatykaBaseListener {
     public void exitProg(@NotNull GramatykaParser.ProgContext ctx) {
         System.out.println(CodeGenerator.generate());
     }
-
+//TODO: fix tutaj
     @Override
     public void exitAssign(@NotNull GramatykaParser.AssignContext ctx) {
-        if (isLocal) {
-            String ID = ctx.ID().getText();
-            Value v = stack.pop();
+        String ID = ctx.ID().getText();
+        Value v = stack.pop();
+        String p = "@";
+        last = v.type;
+        if (isLocal) {//
             if (v.type == VarType.INT) {
-                if (!local.containsKey(ID)) {
+                if (!local.containsKey(ID) && !global.containsKey(ID)) {
                     local.put(ID, v.type);
+                    p="%";
                     CodeGenerator.declare_i32(ID, isLocal);
                 }
-                CodeGenerator.assign_i32(ID, v.name, "%");
+                else if(local.containsKey(ID)){
+                    p="%";
+                }else{
+                    p="@";
+                }
+                CodeGenerator.assign_i32(ID, v.name, p);
             } else if (v.type == VarType.REAL) {
-                if (!local.containsKey(ID)) {
+                if (!local.containsKey(ID) && !global.containsKey(ID)) {
                     local.put(ID, v.type);
+                    p="%";
                     CodeGenerator.declare_double(ID, isLocal);
                 }
-                CodeGenerator.assign_double(ID, v.name, "%");
+                else if(local.containsKey(ID)){
+                    p="%";
+                }
+                else{
+                    p="@";
+                }
+                CodeGenerator.assign_double(ID, v.name, p);
             } else {
                 raiseError(String.valueOf(ctx.getStart().getLine()));
-            }
+            }//
         } else {
-            String ID = ctx.ID().getText();
-            Value v = stack.pop();
             if (v.type == VarType.INT) {
                 if (!global.containsKey(ID)) {
                     global.put(ID, v.type);
@@ -105,7 +120,17 @@ public class ActionImpl extends GramatykaBaseListener {
             }
             CodeGenerator.assign_i32(ID, v.name, p);
         } else {
-            raiseError(String.valueOf(ctx.getStart().getLine()));
+            if(local.containsKey(ID)) {
+                p="%";
+            }
+            else if(global.containsKey(ID)){
+                p="@";
+            }
+            else{
+                global.put(ID,VarType.REAL);
+                CodeGenerator.declare_double(ID, false);
+            }
+            CodeGenerator.assign_double(ID, v.name, p);
         }
     }
 
@@ -113,6 +138,10 @@ public class ActionImpl extends GramatykaBaseListener {
     public void exitAdd(@NotNull GramatykaParser.AddContext ctx) {
         Value v1 = stack.pop();
         Value v2 = stack.pop();
+        if(v2.name.matches("^@[0-9]+$")){
+            v2.name = v2.name.replaceAll("@","%");
+        }
+        System.out.println(v1.name + " " + v2.name);
         if (v1.type == v2.type) {
             if (v1.type == VarType.INT) {
                 CodeGenerator.add_i32(v1.name, v2.name);
@@ -294,29 +323,25 @@ public class ActionImpl extends GramatykaBaseListener {
             VarType gt = global.get(ctx.ID().getText());
             if (isLocal) {
                 if (t != null) {
-                    if (t == VarType.INT) {
-                        CodeGenerator.load_i32(ctx.ID().getText());
-                        stack.push(new Value("%" + (CodeGenerator.reg - 1), VarType.INT));
-                    } else if (t == VarType.REAL) {
-                        CodeGenerator.load_double(ctx.ID().getText());
-                        stack.push(new Value("%" + (CodeGenerator.reg - 1), VarType.REAL));
-                    }
+                    load(t,ctx.ID().getText(),"%");
                 } else if (gt != null) {
-                    load(gt, ctx.ID().getText());
+                    load(gt, ctx.ID().getText(),"@");
+                } else {
+                    raiseError(String.valueOf(ctx.getStart().getLine()) + " Using undeclared value in expression");
                 }
             } else {
-                load(gt, ctx.ID().getText());
+                load(gt, ctx.ID().getText(),"@");
             }
         }
     }
 
-    private void load(VarType t, String ID) {
+    private void load(VarType t, String ID, String p) {
         if (t == VarType.INT) {
-            CodeGenerator.load_i32(ID);
-            stack.push(new Value("@" + (CodeGenerator.reg - 1), VarType.INT));
+            CodeGenerator.load_i32(ID,p);
+            stack.push(new Value("%" + (CodeGenerator.reg - 1), VarType.INT));
         } else if (t == VarType.REAL) {
-            CodeGenerator.load_double(ID);
-            stack.push(new Value("@" + (CodeGenerator.reg - 1), VarType.REAL));
+            CodeGenerator.load_double(ID,p);
+            stack.push(new Value("%" + (CodeGenerator.reg - 1), VarType.REAL));
         }
     }
 
@@ -330,21 +355,22 @@ public class ActionImpl extends GramatykaBaseListener {
     public void exitCall(@NotNull GramatykaParser.CallContext ctx) {
         String Id = ctx.ID().getText();
         if (isDef) {
-            funs.add(Id);
+            function = Id;
+            funs.put(Id, VarType.INT);
             CodeGenerator.functionstart(Id);
             isDef = false;
         } else if (call) {
-            if(!funs.contains(Id)){
+            if(!funs.containsKey(Id)){
                 raiseError(". Function " + Id + "() doesn't exist.");
             }
             else {
-                CodeGenerator.call(Id);
-                stack.push(new Value("%" + (CodeGenerator.reg - 1), VarType.INT));
+                CodeGenerator.call(Id,funs.get(Id));
+                stack.push(new Value("%" + (CodeGenerator.reg - 1), funs.get(Id)));
                 call = false;
             }
         } else {
-            if (funs.contains(Id)) {
-                CodeGenerator.call(Id);
+            if (funs.containsKey(Id)) {
+                CodeGenerator.call(Id,funs.get(Id));
             } else {
                 raiseError(ctx.getStart().getLine() + " Called fun wasn't declared");
             }
@@ -354,7 +380,13 @@ public class ActionImpl extends GramatykaBaseListener {
     @Override
     public void exitFunction(@NotNull GramatykaParser.FunctionContext ctx) {
         isLocal = false;
+        VarType v = VarType.REAL;
+        if(last == VarType.INT) {
+            v = VarType.INT;
+        }
+        funs.put(function,v);
         local.clear();
+        function = "";
         CodeGenerator.functionend();
     }
 

@@ -25,8 +25,12 @@ public class CodeGenerator {
     }
 
     static void functionend(){
-        buffer += "ret i32 %"+(reg -1)+"\n";
+        buffer += "ret i32 %" + (reg - 1) + "\n";
         buffer += "}\n";
+        if(ActionImpl.last == VarType.REAL) {
+            buffer = buffer.replace("define i32 @","define double @");
+            buffer = buffer.replace("ret i32 %","ret double %");
+        }
         header_text += buffer;
         buffer = "";
         reg = tmp_reg;
@@ -34,6 +38,14 @@ public class CodeGenerator {
 
     static void call(String id){
         buffer += "%"+ reg +" = call i32 @"+id+"()\n";
+        reg++;
+    }
+
+    static void call(String id,VarType v){
+        if(v == VarType.INT)
+            buffer += "%"+ reg +" = call i32 @"+id+"()\n";
+        else
+            buffer += "%"+ reg +" = call double @"+id+"()\n";
         reg++;
     }
 
@@ -92,13 +104,13 @@ public class CodeGenerator {
         buffer += "store double "+value+", double* "+p+id+"\n";
     }
 
-    static void load_i32(String id){
-        buffer += "%"+ reg +" = load i32* %"+id+"\n";
+    static void load_i32(String id, String p){
+        buffer += "%"+ reg +" = load i32* "+p+id+"\n";
         reg++;
     }
 
-    static void load_double(String id){
-        buffer += "%"+ reg +" = load double* %"+id+"\n";
+    static void load_double(String id, String p){
+        buffer += "%"+ reg +" = load double* "+p+id+"\n";
         reg++;
     }
 
@@ -209,7 +221,7 @@ public class CodeGenerator {
         buffer += "br label %cond"+ if_no +"\n";
         buffer += "cond"+ if_no +":\n";
 
-        load_i32(Integer.toString(counter));
+        load_i32(Integer.toString(counter),"%");
         add_i32("%" + (reg - 1), "1");
         assign_i32(Integer.toString(counter), "%" + (reg - 1),"%");
 
@@ -230,10 +242,10 @@ public class CodeGenerator {
         buffer += "br label %cond"+ if_no +"\n";
         buffer += "cond"+ if_no +":\n";
 
-        load_i32(Integer.toString(counter));
+        load_i32(Integer.toString(counter),"%");
         add_i32("%" + (reg - 1), "1");
         assign_i32(Integer.toString(counter), "%" + (reg - 1),"%");
-        load_i32(id);
+        load_i32(id,"%");
 
         buffer += "%"+ reg +" = icmp sle i32 %"+(reg -2)+", "+"%" + (reg - 1)+"\n";
         reg++;
