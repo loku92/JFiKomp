@@ -1,7 +1,6 @@
 import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Stack;
 
 /**
@@ -247,7 +246,7 @@ public class ActionImpl extends GramatykaBaseListener {
                 if (global.containsKey(ID)) {
                     p = "@";
                     isLocal = false;
-                    CodeGenerator.declare_i32(ID, isLocal);
+                    //CodeGenerator.declare_i32(ID, isLocal);
                     isLocal = true;
                 } else {
                     local.put(ID, VarType.INT);
