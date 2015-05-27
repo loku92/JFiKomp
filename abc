@@ -1,0 +1,36 @@
+z = 6;
+y = 3;
+
+function test()[
+    print z
+    z = 4
+    lokalna = 3
+    << z >= 0 >>[
+        loop(5)[
+            z = z + 1
+            print z
+        ]
+    ]
+
+];
+
+lokalna = 6; #to nie jest lokalna tylko globalna
+
+function retInt()[
+    b = 1111 * 3
+];
+
+function retReal()[
+    b = 15111.99 * (real)2
+];
+
+test();
+print lokalna;
+g = retInt();
+zmienna = retReal();
+
+print g;
+
+loop(2)[
+    print zmienna
+];
