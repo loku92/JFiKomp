@@ -40,7 +40,8 @@ public class ActionImpl extends GramatykaBaseListener {
     public void exitProg(@NotNull GramatykaParser.ProgContext ctx) {
         System.out.println(CodeGenerator.generate());
     }
-//TODO: fix tutaj
+
+
     @Override
     public void exitAssign(@NotNull GramatykaParser.AssignContext ctx) {
         String ID = ctx.ID().getText();
@@ -140,7 +141,6 @@ public class ActionImpl extends GramatykaBaseListener {
         if(v2.name.matches("^@[0-9]+$")){
             v2.name = v2.name.replaceAll("@","%");
         }
-        System.out.println(v1.name + " " + v2.name);
         if (v1.type == v2.type) {
             if (v1.type == VarType.INT) {
                 CodeGenerator.add_i32(v1.name, v2.name);
@@ -160,6 +160,9 @@ public class ActionImpl extends GramatykaBaseListener {
     public void exitMult(@NotNull GramatykaParser.MultContext ctx) {
         Value v1 = stack.pop();
         Value v2 = stack.pop();
+        if(v2.name.matches("^@[0-9]+$")){
+            v2.name = v2.name.replaceAll("@","%");
+        }
         if (v1.type == v2.type) {
             if (v1.type == VarType.INT) {
                 CodeGenerator.mult_i32(v1.name, v2.name);
@@ -179,6 +182,9 @@ public class ActionImpl extends GramatykaBaseListener {
     public void exitDiv(@NotNull GramatykaParser.DivContext ctx) {
         Value v1 = stack.pop();
         Value v2 = stack.pop();
+        if(v2.name.matches("^@[0-9]+$")){
+            v2.name = v2.name.replaceAll("@","%");
+        }
         if (v1.type == v2.type) {
             if (v1.type == VarType.INT) {
                 CodeGenerator.div_i32(v1.name, v2.name);
@@ -199,6 +205,9 @@ public class ActionImpl extends GramatykaBaseListener {
     public void exitSub(@NotNull GramatykaParser.SubContext ctx) {
         Value v1 = stack.pop();
         Value v2 = stack.pop();
+        if(v2.name.matches("^@[0-9]+$")){
+            v2.name = v2.name.replaceAll("@","%");
+        }
         if (v1.type == v2.type) {
             if (v1.type == VarType.INT) {
                 CodeGenerator.sub_i32(v1.name, v2.name);
